@@ -1,0 +1,82 @@
+<div id="modalEditFoto" class="modal fade" role="dialog" style="z-index: 9999;">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <form id="formFotografia" role="form" method="post" enctype="multipart/form-data" autocomplete="off">
+
+                <input type="hidden" id="accion" name="accion" value="">
+                <input type="hidden" id="id_fotografia" name="id_fotografia" value="">
+
+                <div class="modal-header" id="div-crear">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                    <h4 class="modal-title" id="titulo-modal-distribucion">5. Concepto Asociados de Negocio</h4>
+                </div>
+
+                <div class="modal-body">
+                    <!-- ENTRADA PARA REQUISITO -->
+                    <div class="col-xs-12 col-sm-12 center-block">
+                            <div class="form-group">
+                                <label for="requisito_edit" class="control-label">Concepto Asociados de Negocio: *</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-id-card"></i></span>
+                                    <select class="form-control input" id="requisito_edit" name="requisito_edit" disabled required>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ENTRADA PARA REQUISITO COMPLETO -->
+                        <div class="col-xs-12 col-sm- center-block">
+                            <div class="form-group">
+                                <label for="requisito_completo_edit" class="control-label">Concepto Asociados de Negocio Completo: *</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-id-card"></i></span>
+                                    <textarea class="form-control input" id="requisito_completo_edit" name="requisito_completo_edit" disabled></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- ENTRADA PARA TIPO DE ESPACIOS -->
+                        <div class="col-xs-12 col-sm-6 center-block" id="ocultar_edit1">
+                            <div class="form-group">
+                                <label for="calificacion_edit" class="control-label">Calificacion: *</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-id-card"></i></span>
+                                    <select class="form-control input" id="calificacion_edit" name="calificacion_edit" required>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ENTRADA PARA ESTADOS DE LOS ESPACIOS -->
+                        <div class="col-xs-12 col-sm-6 center-block" id="ocultar_edit2">
+                            <div class="form-group">
+                                <label for="observacion_edit" class="control-label">Observación: *</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-id-card"></i></span>
+                                    <textarea class="form-control input" id="observacion_edit" name="observacion_edit" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- ENTRADA PARA PREGUNTA ABIERTA -->
+                        <div class="col-xs-12 col-sm-12 center-block" id="ocultar_edit3">
+                            <div class="form-group">
+                                <label for="respuesta_abierta_edit" class="control-label">Respuesta a Pregunta Abierta: *</label>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><i class="fa fa-id-card"></i></span>
+                                    <textarea class="form-control input" id="respuesta_abierta_edit" name="respuesta_abierta_edit" required></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                    <div style="color:red;">
+                        Campos señalados con * son obligatorios
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default pull-left" data-dismiss="modal">Salir</button>
+                    <button id="btn-submit-editFoto" type="submit" class="btn btn-primary" data-dismiss="modal">Guardar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

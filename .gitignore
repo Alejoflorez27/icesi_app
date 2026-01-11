@@ -1,0 +1,9 @@
+# cargue de archivos
+upload/
+
+# persistencia de datos mysql
+.data/
+
+.env
+
+.docker/apache-php/ssl/prd/

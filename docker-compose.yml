@@ -1,0 +1,52 @@
+version: "3.1"
+
+services:
+
+  app:
+    build: .docker/apache-php
+    image: sofditech/edsalud/app:latest
+    container_name: sofditech-edsalud-app
+    volumes:
+      - ./application:/var/www/html/public
+      - .docker/apache-php/virtualhost.conf:/etc/apache2/sites-enabled/000-default.conf
+      # - .docker/apache-php/ssl/${SERVER_CRT}:/etc/apache2/ssl/server.crt
+      # - .docker/apache-php/ssl/${SERVER_KEY}:/etc/apache2/ssl/server.key
+      # - .docker/apache-php/ssl/${SERVER_CA}:/etc/apache2/ssl/ca.crt
+      - .docker/apache-php/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    ports:
+      - "${APP_PORT}:83"
+    environment:
+      - APACHE_HTTP_PORT_NUMBER=83
+    env_file:
+      - .env
+    depends_on:
+      - db
+    networks:
+      - edsalud_net
+    restart: always
+
+  db:
+    build: .docker/mariadb
+    image: sofditech/edsalud/db:latest
+    container_name: sofditech-edsalud-db
+    command: --sql_mode='ORACLE' --character-set-server=utf8 --event_scheduler=ON
+    volumes:
+      - ~/.docker-conf/mysql/data/:/var/lib/mysql
+      - ./scripts:/scripts
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}:3306"
+    networks:
+      - edsalud_net
+    restart: always
+
+networks:
+  edsalud_net:
+    driver: bridge
+
+
+    # 1. run services
+    # docker-compose up --build

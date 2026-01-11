@@ -1,0 +1,21 @@
+# Options -MultiViews
+# RewriteEngine On
+# RewriteCond %{REQUEST_FILENAME} !-f
+# RewriteRule ^ index.php [QSA,L]
+
+
+Options -MultiViews
+RewriteEngine On
+
+# RewriteCond %{REQUEST_FILENAME} !-f
+
+RewriteCond %{REQUEST_URI} !^(.+)/adminlte/(.+)$
+RewriteCond %{REQUEST_URI} !^(.+)/js/(.+)$ 
+RewriteCond %{REQUEST_URI} !^(.+)/image/(.+)$ 
+RewriteCond %{REQUEST_URI} !^(.+)/upload/(.+)$
+RewriteCond %{REQUEST_URI} !^(.+)/arch_adjuntos/(.+)$
+RewriteCond %{REQUEST_URI} !^(.+)/template/(.+)$  
+RewriteCond %{REQUEST_URI} !^(.+).php$ 
+
+RewriteRule ^ index.php [QSA,L]
+
