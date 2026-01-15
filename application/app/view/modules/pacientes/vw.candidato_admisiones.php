@@ -1254,7 +1254,7 @@
             });
         });
         
-        // Generar PDF samuel
+        // Generar PDF samuel y alejo
         function generatePDF() {
             const form = document.getElementById('clinicalForm');
             const formData = new FormData(form);
