@@ -481,12 +481,12 @@ class CtrUsuario
                 $token = self::setToken($username);
                 $obj_usuario = new Usuario($username);
                 $perfil = $obj_usuario->getPerfil();
-                $bandera_bash = $obj_usuario->getBanderaBash();
+                //$bandera_bash = $obj_usuario->getBanderaBash();
                 $id_empresa = $obj_usuario->getIdEmpresa();
 
-                $auto_bash = CtrTrcEmpresa::findByAutoXempre($id_empresa);
+                //$auto_bash = CtrTrcEmpresa::findByAutoXempre($id_empresa);
                 //print_r($perfil);
-                return array("success" => true, "action" => "LOGIN", "code" => "Acceso Correcto.", "token" => $token, "perfil" => $perfil , "bandera_bash" => $bandera_bash, "id_empresa" => $id_empresa, "auto_bash" => $auto_bash);
+                return array("success" => true, "action" => "LOGIN", "code" => "Acceso Correcto.", "token" => $token, "perfil" => $perfil /*, "bandera_bash" => $bandera_bash*/, "id_empresa" => $id_empresa/*, "auto_bash" => $auto_bash*/);
             } else {
                 return array("success" => false, "action" => "LOGIN", "code" => "{}");
             }

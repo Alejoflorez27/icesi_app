@@ -11,8 +11,9 @@ require('ctr.pdf.antecedentes.php'); // Informe de Antecedentes Base CIFIN
 require('ctr.pdf.vingreso.php'); // Informe de Antecedentes Base CIFIN
 require('ctr.pdf.polipre.php'); // Informe de POLIGRAFIA PREempleo
 require('ctr.pdf.cifin.php'); // Informe de POLIGRAFIA PREempleo
-
 require('ctr.pdf.auto_bash.php'); // Informe de Bash
+
+require('ctr.pdf.historia_clinica.php'); // Informe de historia clinica
 
 
 /*
@@ -180,6 +181,16 @@ class CtrInformeMain extends PDF
                     }
                     
                 }
+
+                //historia clinica
+                if ($row['id_servicio'] == 29) {
+                    //$pdf->AddPage();
+                    $pdf->Ln(5);
+                    $pdf->SetFont('Arial', 'B', 10);
+                    $pdf->Cell(190, 5, utf8_decode($servicio['data']['nom_servicio']), 0, 0, 'C', 0);
+                    $pdf->Ln(4);
+                    infCifin($pdf, $idsolicitud, $row['id_servicio']);
+                }
             }
         }
         // imprimir por servicio
@@ -225,6 +236,14 @@ class CtrInformeMain extends PDF
             
             if ($idservicio == 11) {
                 infCifin($pdf, $idsolicitud,  $idservicio);
+            }
+
+            if ($idservicio == 29) {
+                historiaClinicaPdf($pdf, $idsolicitud,  $idservicio);
+                consentimientoInformadoPdf($pdf, $idsolicitud,  $idservicio);
+                certificadoAtencionTransitoPdf($pdf, $idsolicitud,  $idservicio);
+                encuestaSatisfaccionPdf($pdf, $idsolicitud,  $idservicio);
+                
             }
         }
         // pie de pagina de adjuntos

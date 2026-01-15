@@ -119,6 +119,11 @@ define(
                     'protocoloSeguridad_visita_ingreso' => 'visita_ingreso/',
                     'conceptoProfesional_visita_ingreso' => 'visita_ingreso/',
                     'adjuntos_visita_ingreso' => 'visita_ingreso/',
+
+                    //Visita de Ingreso
+                    'candidato_admisiones' => 'pacientes/',
+
+
                     
                 ),
                 #imagenes de la aplicacion #APP_ROUTES_IMAGE_XXX

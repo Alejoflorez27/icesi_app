@@ -46,15 +46,15 @@ $(document).ready(function() {
                     console.log(r.bandera_bash)*/
                     //9 cadidato alejo 
                     //14 candidato guille
-                    if(r.perfil == 14){
+                    /*if(r.perfil == 14){
                         window.location = url_site(`candidato?id_solicitud=${id_solicitudC}`);
                     }else if((r.perfil == 7) && (r.bandera_bash == 'S') && (r.auto_bash.data.total == '0')){
                         window.location = url_site(`auto_bash`);
                         
                     } 
-                    else {
+                    else {*/
                         window.location = url_site(`dashboard`);
-                    }
+                    //}
                     
                 } else {
                     $('#username, #password').val('');
