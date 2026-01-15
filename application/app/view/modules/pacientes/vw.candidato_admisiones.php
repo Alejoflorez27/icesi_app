@@ -1254,7 +1254,7 @@
             });
         });
         
-        // Generar PDF
+        // Generar PDF samuel
         function generatePDF() {
             const form = document.getElementById('clinicalForm');
             const formData = new FormData(form);
