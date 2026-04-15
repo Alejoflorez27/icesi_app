@@ -311,8 +311,8 @@ function renderizarCursos(cursos) {
             <td>${curso.objetivos || 'Sin asignar'}</td>
             <td>${curso.niveles || '-'}</td>
             <td>
-                <button class="btn btn-sm btn-info" onclick="editarCurso(${curso.id_curso})"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="eliminarCurso(${curso.id_curso})"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-sm btn-info" onclick="editarCurso(${curso.id_curso})"><i class="fa fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="eliminarCurso(${curso.id_curso})"><i class="fa fa-trash"></i></button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -343,8 +343,8 @@ function renderizarCompetencias(competencias) {
             <td>${c.descripcion || ''}</td>
             <td><span class="badge badge-primary">${c.total_objetivos || 0}</span></td>
             <td>
-                <button class="btn btn-sm btn-info" onclick="editarCompetencia(${c.id_competencia})"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="eliminarCompetencia(${c.id_competencia})"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-sm btn-info" onclick="editarCompetencia(${c.id_competencia})"><i class="fa fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="eliminarCompetencia(${c.id_competencia})"><i class="fa fa-trash"></i></button>
             </td>
         `;
         tbody.appendChild(tr);
@@ -376,8 +376,8 @@ function renderizarObjetivos(objetivos) {
             <td>${o.descripcion || ''}</td>
             <td><span class="badge badge-success">${o.total_cursos || 0}</span></td>
             <td>
-                <button class="btn btn-sm btn-info" onclick="editarObjetivo(${o.id_objetivo})"><i class="fas fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="eliminarObjetivo(${o.id_objetivo})"><i class="fas fa-trash"></i></button>
+                <button class="btn btn-sm btn-info" onclick="editarObjetivo(${o.id_objetivo})"><i class="fa fa-edit"></i></button>
+                <button class="btn btn-sm btn-danger" onclick="eliminarObjetivo(${o.id_objetivo})"><i class="fa fa-trash"></i></button>
             </td>
         `;
         tbody.appendChild(tr);

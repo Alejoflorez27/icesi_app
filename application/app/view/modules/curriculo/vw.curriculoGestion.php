@@ -23,7 +23,7 @@
                     <p>Cursos</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-book"></i>
+                    <i class="fa fa-book"></i>
                 </div>
             </div>
         </div>
@@ -35,7 +35,7 @@
                     <p>Competencias</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-star"></i>
+                    <i class="fa fa-star"></i>
                 </div>
             </div>
         </div>
@@ -47,7 +47,7 @@
                     <p>Objetivos</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-target"></i>
+                    <i class="fa fa-target"></i>
                 </div>
             </div>
         </div>
@@ -59,7 +59,7 @@
                     <p>Programas</p>
                 </div>
                 <div class="icon">
-                    <i class="fas fa-graduation-cap"></i>
+                    <i class="fa fa-graduation-cap"></i>
                 </div>
             </div>
         </div>

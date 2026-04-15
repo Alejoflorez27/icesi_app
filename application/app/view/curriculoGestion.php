@@ -26,25 +26,25 @@
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-info">
                     <div class="inner"><h3 id="total-cursos">0</h3><p>Cursos</p></div>
-                    <div class="icon"><i class="fas fa-book"></i></div>
+                    <div class="icon"><i class="fa fa-book"></i></div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-success">
                     <div class="inner"><h3 id="total-competencias">0</h3><p>Competencias</p></div>
-                    <div class="icon"><i class="fas fa-star"></i></div>
+                    <div class="icon"><i class="fa fa-star"></i></div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-warning">
                     <div class="inner"><h3 id="total-objetivos">0</h3><p>Objetivos</p></div>
-                    <div class="icon"><i class="fas fa-target"></i></div>
+                    <div class="icon"><i class="fa fa-target"></i></div>
                 </div>
             </div>
             <div class="col-lg-3 col-6">
                 <div class="small-box bg-primary">
                     <div class="inner"><h3 id="total-programas">0</h3><p>Programas</p></div>
-                    <div class="icon"><i class="fas fa-graduation-cap"></i></div>
+                    <div class="icon"><i class="fa fa-graduation-cap"></i></div>
                 </div>
             </div>
         </div>
@@ -66,7 +66,7 @@
                             <div class="card-header">
                                 <h3 class="card-title">Listado de cursos y su mapeo curricular</h3>
                                 <div class="card-tools">
-                                    <button class="btn btn-primary btn-sm" onclick="mostrarModalCurso()"><i class="fas fa-plus"></i> Nuevo Curso</button>
+                                    <button class="btn btn-primary btn-sm" onclick="mostrarModalCurso()"><i class="fa fa-plus"></i> Nuevo Curso</button>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -126,7 +126,7 @@
                             <div class="card-header">
                                 <h3 class="card-title">Gestión de Competencias</h3>
                                 <div class="card-tools">
-                                    <button class="btn btn-primary btn-sm" onclick="mostrarModalCompetencia()"><i class="fas fa-plus"></i> Nueva Competencia</button>
+                                    <button class="btn btn-primary btn-sm" onclick="mostrarModalCompetencia()"><i class="fa fa-plus"></i> Nueva Competencia</button>
                                 </div>
                             </div>
                             <div class="card-body">
@@ -143,7 +143,7 @@
                             <div class="card-header">
                                 <h3 class="card-title">Gestión de Objetivos</h3>
                                 <div class="card-tools">
-                                    <button class="btn btn-primary btn-sm" onclick="mostrarModalObjetivo()"><i class="fas fa-plus"></i> Nuevo Objetivo</button>
+                                    <button class="btn btn-primary btn-sm" onclick="mostrarModalObjetivo()"><i class="fa fa-plus"></i> Nuevo Objetivo</button>
                                 </div>
                             </div>
                             <div class="card-body">
