@@ -4,8 +4,8 @@ services:
 
   app:
     build: .docker/apache-php
-    image: sofditech/edsalud/app:latest
-    container_name: sofditech-edsalud-app
+    image: sofditech/icesi-app:latest
+    container_name: sofditech-icesi-app
     volumes:
       - ./application:/var/www/html/public
       - .docker/apache-php/virtualhost.conf:/etc/apache2/sites-enabled/000-default.conf
@@ -22,13 +22,13 @@ services:
     depends_on:
       - db
     networks:
-      - edsalud_net
+      - icesi_net
     restart: always
 
   db:
     build: .docker/mariadb
-    image: sofditech/edsalud/db:latest
-    container_name: sofditech-edsalud-db
+    image: sofditech/icesi/db:latest
+    container_name: sofditech-icesi-db
     command: --sql_mode='ORACLE' --character-set-server=utf8 --event_scheduler=ON
     volumes:
       - ~/.docker-conf/mysql/data/:/var/lib/mysql
@@ -40,11 +40,11 @@ services:
     ports:
       - "${DB_PORT}:3306"
     networks:
-      - edsalud_net
+      - icesi_net
     restart: always
 
 networks:
-  edsalud_net:
+  icesi_net:
     driver: bridge
 
 

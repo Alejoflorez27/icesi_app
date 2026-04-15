@@ -129,10 +129,10 @@ define(
                 #imagenes de la aplicacion #APP_ROUTES_IMAGE_XXX
                 'IMAGE' => array(
                     'DIR' => 'upload/image/sitio/',
-                    'ICON' => 'logoedsalud.png',
-                    'ISOLOGO' => 'logoedsalud.png',
-                    'LOGO' => 'logoedsalud.png',
-                    'INICIO' => 'logoedsalud.png'
+                    'ICON' => 'logo_icesi.png',
+                    'ISOLOGO' => 'logo_icesi.png',
+                    'LOGO' => 'logo_icesi.png',
+                    'INICIO' => 'logo_icesi.png'
                 )
             )
         ),
