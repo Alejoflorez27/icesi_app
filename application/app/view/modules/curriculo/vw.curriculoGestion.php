@@ -302,7 +302,4 @@
 
 <!-- LibrerÍas -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/alertify.js@1.13.1/build/alertify.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/alertify.js@1.13.1/build/css/alertify.min.css">
-
 <script src="<?= constant('APP_URL') ?>app/js/curriculoGestion.js"></script>

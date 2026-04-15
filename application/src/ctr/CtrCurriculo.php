@@ -34,11 +34,15 @@ class CtrCurriculo extends DATABASE
                     c.creditos,
                     p.nombre AS programa,
                     COUNT(DISTINCT co.id_objetivo) AS total_objetivos,
-                    COUNT(DISTINCT o.id_competencia) AS total_competencias
+                    COUNT(DISTINCT o.id_competencia) AS total_competencias,
+                    COALESCE(GROUP_CONCAT(DISTINCT comp.nombre ORDER BY comp.nombre SEPARATOR ', '), '') AS competencias,
+                    COALESCE(GROUP_CONCAT(DISTINCT o.nombre ORDER BY o.nombre SEPARATOR ', '), '') AS objetivos,
+                    COALESCE(GROUP_CONCAT(DISTINCT co.nivel ORDER BY co.nivel SEPARATOR ', '), '') AS niveles
                 FROM cursos c
                 INNER JOIN programas p ON p.id_programa = c.id_programa
                 LEFT JOIN curso_objetivo co ON co.id_curso = c.id_curso
                 LEFT JOIN objetivos o ON o.id_objetivo = co.id_objetivo
+                LEFT JOIN competencias comp ON comp.id_competencia = o.id_competencia
                 WHERE 1=1";
 
         $params = [];

@@ -18,7 +18,6 @@
  <!-- daterange picker -->
  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
  <link rel="stylesheet" href="<?= constant('APP_URL') ?>vendor/adminlte/bower_components/bootstrap-daterangepicker/daterangepicker.css">
- <link rel="stylesheet" href="<?= constant('APP_URL') ?>vendor/adminlte3/plugins/daterangepicker/daterangepicker.css">
 
  <!-- iCheck for checkboxes and radio inputs -->
  <link rel="stylesheet" href="<?= constant('APP_URL') ?>vendor/adminlte/plugins/iCheck/all.css">

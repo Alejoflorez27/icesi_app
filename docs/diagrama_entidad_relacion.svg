@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1300" height="800" viewBox="0 0 1300 800">
+  <style>
+    .title { font: bold 20px Arial; fill:#1f2937; }
+    .subtitle { font: 14px Arial; fill:#374151; }
+    .entity { fill:#f8fafc; stroke:#334155; stroke-width:2; rx:8; }
+    .header { fill:#2563eb; }
+    .headerText { font:bold 14px Arial; fill:white; }
+    .field { font: 13px Arial; fill:#111827; }
+    .pk { font:bold 13px Arial; fill:#b91c1c; }
+    .fk { font:bold 13px Arial; fill:#1d4ed8; }
+    .rel { stroke:#0f172a; stroke-width:2; marker-end:url(#arrow); }
+    .card { font: bold 12px Arial; fill:#0f172a; }
+  </style>
+
+  <defs>
+    <marker id="arrow" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth">
+      <path d="M0,0 L0,6 L9,3 z" fill="#0f172a" />
+    </marker>
+  </defs>
+
+  <text x="30" y="40" class="title">Diagrama Entidad-Relación - Sistema de Gestión Curricular</text>
+  <text x="30" y="65" class="subtitle">Universidad Icesi - Modelo lógico implementado sobre MySQL</text>
+
+  <rect x="40" y="110" width="280" height="190" class="entity"/>
+  <rect x="40" y="110" width="280" height="35" class="header"/>
+  <text x="55" y="133" class="headerText">programas</text>
+  <text x="55" y="165" class="pk">PK id_programa</text>
+  <text x="55" y="188" class="field">codigo (UNIQUE)</text>
+  <text x="55" y="211" class="field">nombre</text>
+  <text x="55" y="234" class="field">descripcion</text>
+  <text x="55" y="257" class="field">activa, created_at, updated_at</text>
+
+  <rect x="380" y="110" width="320" height="220" class="entity"/>
+  <rect x="380" y="110" width="320" height="35" class="header"/>
+  <text x="395" y="133" class="headerText">cursos</text>
+  <text x="395" y="165" class="pk">PK id_curso</text>
+  <text x="395" y="188" class="fk">FK id_programa → programas.id_programa</text>
+  <text x="395" y="211" class="field">codigo (UNIQUE)</text>
+  <text x="395" y="234" class="field">nombre</text>
+  <text x="395" y="257" class="field">descripcion</text>
+  <text x="395" y="280" class="field">creditos, created_at, updated_at</text>
+
+  <rect x="40" y="390" width="320" height="190" class="entity"/>
+  <rect x="40" y="390" width="320" height="35" class="header"/>
+  <text x="55" y="413" class="headerText">competencias</text>
+  <text x="55" y="445" class="pk">PK id_competencia</text>
+  <text x="55" y="468" class="field">nombre (UNIQUE)</text>
+  <text x="55" y="491" class="field">descripcion</text>
+  <text x="55" y="514" class="field">created_at, updated_at</text>
+
+  <rect x="430" y="390" width="350" height="220" class="entity"/>
+  <rect x="430" y="390" width="350" height="35" class="header"/>
+  <text x="445" y="413" class="headerText">objetivos</text>
+  <text x="445" y="445" class="pk">PK id_objetivo</text>
+  <text x="445" y="468" class="fk">FK id_competencia → competencias.id_competencia</text>
+  <text x="445" y="491" class="field">nombre</text>
+  <text x="445" y="514" class="field">descripcion</text>
+  <text x="445" y="537" class="field">(UNIQUE id_competencia, nombre)</text>
+  <text x="445" y="560" class="field">created_at, updated_at</text>
+
+  <rect x="860" y="250" width="390" height="260" class="entity"/>
+  <rect x="860" y="250" width="390" height="35" class="header"/>
+  <text x="875" y="273" class="headerText">curso_objetivo</text>
+  <text x="875" y="305" class="pk">PK id_curso_objetivo</text>
+  <text x="875" y="328" class="fk">FK id_curso → cursos.id_curso</text>
+  <text x="875" y="351" class="fk">FK id_objetivo → objetivos.id_objetivo</text>
+  <text x="875" y="374" class="field">nivel ENUM('I','F','V')</text>
+  <text x="875" y="397" class="field">UNIQUE(id_curso, id_objetivo)</text>
+  <text x="875" y="420" class="field">created_at, updated_at</text>
+  <text x="875" y="455" class="subtitle">Tabla puente N:M entre cursos y objetivos</text>
+
+  <line x1="320" y1="200" x2="380" y2="200" class="rel"/>
+  <text x="335" y="190" class="card">1</text>
+  <text x="365" y="190" class="card">N</text>
+
+  <line x1="360" y1="480" x2="430" y2="480" class="rel"/>
+  <text x="375" y="470" class="card">1</text>
+  <text x="410" y="470" class="card">N</text>
+
+  <line x1="700" y1="250" x2="860" y2="330" class="rel"/>
+  <text x="750" y="260" class="card">1</text>
+  <text x="830" y="318" class="card">N</text>
+
+  <line x1="780" y1="500" x2="860" y2="365" class="rel"/>
+  <text x="790" y="470" class="card">1</text>
+  <text x="840" y="380" class="card">N</text>
+
+  <text x="40" y="700" class="subtitle">Reglas: objetivo pertenece a una sola competencia; curso y objetivo se relacionan N:M con nivel I/F/V.</text>
+</svg>

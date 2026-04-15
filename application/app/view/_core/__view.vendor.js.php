@@ -90,5 +90,3 @@
 <!-- Loading Modal -->
 <!-- Fuente: https://www.jqueryscript.net/loading/Fullscreen-Loading-Modal-Indicator-Plugin-For-jQuery-loadingModal.html -->
 <script src="<?= constant('APP_URL') ?>vendor/adminlte/plugins/loadingModal/js/jquery.loadingModal.js"></script>
-<script src="<?= constant('APP_URL') ?>vendor/adminlte3/plugins/daterangepicker/daterangepicker.js"></script>
-
