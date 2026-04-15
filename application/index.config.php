@@ -82,6 +82,7 @@ define(
                     'solicitud' => 'sol/',
                     'sla' => 'sol/',
                     'festivos' => 'sol/',
+                    'curriculoGestion' => 'curriculo/',
 
                     //Hoja de vida
                     'candidato' => 'candidato/',
