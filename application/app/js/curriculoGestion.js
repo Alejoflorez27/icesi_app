@@ -1,868 +1,741 @@
 let chartObjetivos = null;
 let chartCompetencias = null;
-const API_BASE = '/api';
-<<<<<<< ours
-=======
 
-function mostrarNotificacion(tipo, mensaje) {
-    if (window.alertify && typeof window.alertify[tipo] === 'function') {
-        window.alertify[tipo](mensaje);
-        return;
-    }
+$(document).ready(function () {
 
-    if (window.Swal && typeof window.Swal.fire === 'function') {
-        const icono = tipo === 'success' ? 'success' : 'error';
-        window.Swal.fire({
-            icon: icono,
-            title: tipo === 'success' ? 'Éxito' : 'Error',
-            text: mensaje
+    $("body").addClass("sidebar-collapse");
+
+    cargarDashboard();
+    cargarFiltrosCurriculo();
+    cargarTablaCursos();
+    cargarTablaCompetencias();
+    cargarTablaObjetivos();
+    cargarAnalisis();
+
+    $('#filtro-programa, #filtro-competencia, #filtro-objetivo, #filtro-nivel').on('change', function () {
+        cargarTablaCursos();
+    });
+
+    $('#btn-limpiar-filtros').on('click', function () {
+        $('#filtro-programa').val('');
+        $('#filtro-competencia').val('');
+        $('#filtro-objetivo').val('');
+        $('#filtro-nivel').val('');
+        cargarTablaCursos();
+    });
+
+    $('#btn-submit-curso').on('click', function (e) {
+        e.preventDefault();
+
+        if (validateFormCurso()) {
+            let method = $('#accionCurso').val();
+            let data = {
+                id_curso: $('#curso-id').val(),
+                id_programa: $('#curso-programa').val(),
+                nombre: $('#curso-nombre').val(),
+                codigo: $('#curso-codigo').val(),
+                descripcion: $('#curso-descripcion').val(),
+                creditos: $('#curso-creditos').val()
+            };
+
+            $.ajax({
+                method: 'POST',
+                headers: {
+                    "access-token": getToken()
+                },
+                url: url_site(`api/cursos?action=${method}`),
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: $.param(data),
+                dataType: "json",
+                success: function (r) {
+                    if (r.status == "success") {
+                        alertSwal('success', 'Curso', 'Curso guardado satisfactoriamente');
+                        $('#formCurso')[0].reset();
+                        $('#modalCurso').modal('hide');
+                        cargarDashboard();
+                        cargarTablaCursos();
+                    } else {
+                        alertSwal('error', 'Curso', (r.code && r.code.code) ? r.code.code : 'No fue posible guardar el curso');
+                    }
+                },
+                error: function (xhr) {
+                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                },
+                complete: function () {
+                    hideModalLoading();
+                }
+            });
+        }
+    });
+
+    $('#btn-submit-competencia').on('click', function (e) {
+        e.preventDefault();
+
+        if (validateFormCompetencia()) {
+            let method = $('#accionCompetencia').val();
+            let data = {
+                id_competencia: $('#competencia-id').val(),
+                nombre: $('#competencia-nombre').val(),
+                descripcion: $('#competencia-descripcion').val()
+            };
+
+            $.ajax({
+                method: 'POST',
+                headers: {
+                    "access-token": getToken()
+                },
+                url: url_site(`api/competencias?action=${method}`),
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: $.param(data),
+                dataType: "json",
+                success: function (r) {
+                    if (r.status == "success") {
+                        alertSwal('success', 'Competencia', 'Competencia guardada satisfactoriamente');
+                        $('#formCompetencia')[0].reset();
+                        $('#modalCompetencia').modal('hide');
+                        cargarDashboard();
+                        cargarFiltrosCurriculo();
+                        cargarTablaCompetencias();
+                        cargarTablaObjetivos();
+                        cargarTablaCursos();
+                    } else {
+                        alertSwal('error', 'Competencia', (r.code && r.code.code) ? r.code.code : 'No fue posible guardar la competencia');
+                    }
+                },
+                error: function (xhr) {
+                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                },
+                complete: function () {
+                    hideModalLoading();
+                }
+            });
+        }
+    });
+
+    $('#btn-submit-objetivo').on('click', function (e) {
+        e.preventDefault();
+
+        if (validateFormObjetivo()) {
+            let method = $('#accionObjetivo').val();
+            let data = {
+                id_objetivo: $('#objetivo-id').val(),
+                id_competencia: $('#objetivo-competencia').val(),
+                nombre: $('#objetivo-nombre').val(),
+                descripcion: $('#objetivo-descripcion').val()
+            };
+
+            $.ajax({
+                method: 'POST',
+                headers: {
+                    "access-token": getToken()
+                },
+                url: url_site(`api/objetivos?action=${method}`),
+                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                data: $.param(data),
+                dataType: "json",
+                success: function (r) {
+                    if (r.status == "success") {
+                        alertSwal('success', 'Objetivo', 'Objetivo guardado satisfactoriamente');
+                        $('#formObjetivo')[0].reset();
+                        $('#modalObjetivo').modal('hide');
+                        cargarDashboard();
+                        cargarFiltrosCurriculo();
+                        cargarTablaCompetencias();
+                        cargarTablaObjetivos();
+                        cargarTablaCursos();
+                        cargarAnalisis();
+                    } else {
+                        alertSwal('error', 'Objetivo', (r.code && r.code.code) ? r.code.code : 'No fue posible guardar el objetivo');
+                    }
+                },
+                error: function (xhr) {
+                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                },
+                complete: function () {
+                    hideModalLoading();
+                }
+            });
+        }
+    });
+
+    $('.btnAddCurso').on('click', function () {
+        $('#formCurso')[0].reset();
+        $('#curso-id').val('');
+        $('#accionCurso').val('crear');
+        $('#modalCurso').modal();
+    });
+
+    $('.btnAddCompetencia').on('click', function () {
+        $('#formCompetencia')[0].reset();
+        $('#competencia-id').val('');
+        $('#accionCompetencia').val('crear');
+        $('#modalCompetencia').modal();
+    });
+
+    $('.btnAddObjetivo').on('click', function () {
+        $('#formObjetivo')[0].reset();
+        $('#objetivo-id').val('');
+        $('#accionObjetivo').val('crear');
+        $('#modalObjetivo').modal();
+    });
+
+    $('#tbl-cursos').on('click', '.btnEditCurso', function () {
+        let id_curso = $(this).attr('curso');
+
+        $('#accionCurso').val('actualizar');
+
+        $.ajax({
+            headers: {
+                "access-token": getToken()
+            },
+            type: "POST",
+            url: url_site(`api/cursos?action=obtener`),
+            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+            data: $.param({ id_curso: id_curso }),
+            dataType: "json",
+            success: function (resp) {
+                $('#curso-id').val(resp.data.id_curso);
+                $('#curso-programa').val(resp.data.id_programa);
+                $('#curso-nombre').val(resp.data.nombre);
+                $('#curso-codigo').val(resp.data.codigo);
+                $('#curso-descripcion').val(resp.data.descripcion);
+                $('#curso-creditos').val(resp.data.creditos);
+                $('#modalCurso').modal();
+            }
         });
-        return;
-    }
+    });
 
-    console[tipo === 'success' ? 'log' : 'error'](mensaje);
-}
+    $('#tbl-competencias').on('click', '.btnEditCompetencia', function () {
+        let id_competencia = $(this).attr('competencia');
 
-function obtenerElementoPorIds(ids) {
-    for (const id of ids) {
-        const elemento = document.getElementById(id);
-        if (elemento) return elemento;
-    }
-    return null;
-}
+        $('#accionCompetencia').val('actualizar');
 
-async function fetchJson(url) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-        const body = await response.text();
-        throw new Error(`Respuesta no JSON (${contentType || 'sin content-type'}): ${body.slice(0, 120)}`);
-    }
-
-    return response.json();
-}
->>>>>>> theirs
-
-function mostrarNotificacion(tipo, mensaje) {
-    if (window.alertify && typeof window.alertify[tipo] === 'function') {
-        window.alertify[tipo](mensaje);
-        return;
-    }
-
-    if (window.Swal && typeof window.Swal.fire === 'function') {
-        const icono = tipo === 'success' ? 'success' : 'error';
-        window.Swal.fire({
-            icon: icono,
-            title: tipo === 'success' ? 'Éxito' : 'Error',
-            text: mensaje
+        $.ajax({
+            headers: {
+                "access-token": getToken()
+            },
+            type: "POST",
+            url: url_site(`api/competencias?action=obtener`),
+            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+            data: $.param({ id_competencia: id_competencia }),
+            dataType: "json",
+            success: function (resp) {
+                $('#competencia-id').val(resp.data.id_competencia);
+                $('#competencia-nombre').val(resp.data.nombre);
+                $('#competencia-descripcion').val(resp.data.descripcion);
+                $('#modalCompetencia').modal();
+            }
         });
-        return;
-    }
+    });
 
-    console[tipo === 'success' ? 'log' : 'error'](mensaje);
-}
+    $('#tbl-objetivos').on('click', '.btnEditObjetivo', function () {
+        let id_objetivo = $(this).attr('objetivo');
 
-function obtenerElementoPorIds(ids) {
-    for (const id of ids) {
-        const elemento = document.getElementById(id);
-        if (elemento) return elemento;
-    }
-    return null;
-}
+        $('#accionObjetivo').val('actualizar');
 
-async function fetchJson(url) {
-    const response = await fetch(url);
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        $.ajax({
+            headers: {
+                "access-token": getToken()
+            },
+            type: "POST",
+            url: url_site(`api/objetivos?action=obtener`),
+            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+            data: $.param({ id_objetivo: id_objetivo }),
+            dataType: "json",
+            success: function (resp) {
+                $('#objetivo-id').val(resp.data.id_objetivo);
+                $('#objetivo-competencia').val(resp.data.id_competencia);
+                $('#objetivo-nombre').val(resp.data.nombre);
+                $('#objetivo-descripcion').val(resp.data.descripcion);
+                $('#modalObjetivo').modal();
+            }
+        });
+    });
 
-    const contentType = response.headers.get('content-type') || '';
-    if (!contentType.includes('application/json')) {
-        const body = await response.text();
-        throw new Error(`Respuesta no JSON (${contentType || 'sin content-type'}): ${body.slice(0, 120)}`);
-    }
+    $('#tbl-cursos').on('click', '.btnDeleteCurso', function () {
+        let id_curso = $(this).attr('curso');
 
-    return response.json();
-}
+        Swal.fire({
+            type: 'question',
+            title: 'Eliminar Curso',
+            text: '¿Está seguro de eliminar este curso?',
+            confirmButtonText: 'OK',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            focusCancel: true
+        }).then(function (result) {
+            if (result.value) {
+                $.ajax({
+                    method: 'POST',
+                    headers: {
+                        "access-token": getToken()
+                    },
+                    url: url_site(`api/cursos?action=eliminar`),
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                    data: $.param({ id_curso: id_curso }),
+                    dataType: "json",
+                    success: function (r) {
+                        if (r.status == "success") {
+                            alertSwal('success', 'Curso', 'Curso eliminado satisfactoriamente');
+                            cargarDashboard();
+                            cargarTablaCursos();
+                        } else {
+                            alertSwal('error', 'Curso', (r.code && r.code.code) ? r.code.code : 'No fue posible eliminar el curso');
+                        }
+                    },
+                    error: function (xhr) {
+                        alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                    }
+                });
+            }
+        });
+    });
 
-const estado = {
-    cursos: [],
-    programas: [],
-    competencias: [],
-    objetivos: []
-};
+    $('#tbl-competencias').on('click', '.btnDeleteCompetencia', function () {
+        let id_competencia = $(this).attr('competencia');
 
-document.addEventListener('DOMContentLoaded', () => {
-    inicializar();
+        Swal.fire({
+            type: 'question',
+            title: 'Eliminar Competencia',
+            text: '¿Está seguro de eliminar esta competencia?',
+            confirmButtonText: 'OK',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            focusCancel: true
+        }).then(function (result) {
+            if (result.value) {
+                $.ajax({
+                    method: 'POST',
+                    headers: {
+                        "access-token": getToken()
+                    },
+                    url: url_site(`api/competencias?action=eliminar`),
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                    data: $.param({ id_competencia: id_competencia }),
+                    dataType: "json",
+                    success: function (r) {
+                        if (r.status == "success") {
+                            alertSwal('success', 'Competencia', 'Competencia eliminada satisfactoriamente');
+                            cargarDashboard();
+                            cargarFiltrosCurriculo();
+                            cargarTablaCompetencias();
+                            cargarTablaObjetivos();
+                            cargarTablaCursos();
+                            cargarAnalisis();
+                        } else {
+                            alertSwal('error', 'Competencia', (r.code && r.code.code) ? r.code.code : 'No fue posible eliminar la competencia');
+                        }
+                    },
+                    error: function (xhr) {
+                        alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                    }
+                });
+            }
+        });
+    });
+
+    $('#tbl-objetivos').on('click', '.btnDeleteObjetivo', function () {
+        let id_objetivo = $(this).attr('objetivo');
+
+        Swal.fire({
+            type: 'question',
+            title: 'Eliminar Objetivo',
+            text: '¿Está seguro de eliminar este objetivo?',
+            confirmButtonText: 'OK',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            focusCancel: true
+        }).then(function (result) {
+            if (result.value) {
+                $.ajax({
+                    method: 'POST',
+                    headers: {
+                        "access-token": getToken()
+                    },
+                    url: url_site(`api/objetivos?action=eliminar`),
+                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
+                    data: $.param({ id_objetivo: id_objetivo }),
+                    dataType: "json",
+                    success: function (r) {
+                        if (r.status == "success") {
+                            alertSwal('success', 'Objetivo', 'Objetivo eliminado satisfactoriamente');
+                            cargarDashboard();
+                            cargarFiltrosCurriculo();
+                            cargarTablaCompetencias();
+                            cargarTablaObjetivos();
+                            cargarTablaCursos();
+                            cargarAnalisis();
+                        } else {
+                            alertSwal('error', 'Objetivo', (r.code && r.code.code) ? r.code.code : 'No fue posible eliminar el objetivo');
+                        }
+                    },
+                    error: function (xhr) {
+                        alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                    }
+                });
+            }
+        });
+    });
 });
 
-<<<<<<< ours
-async function inicializar() {
-    await Promise.all([
-        cargarProgramas(),
-        cargarCompetencias(),
-        cargarObjetivos()
-    ]);
-
-    await Promise.all([
-        cargarDashboard(),
-        cargarCursos(),
-        cargarAnalisis()
-    ]);
-}
-
-function parseResponse(data) {
-    if (Array.isArray(data)) return data;
-    return data?.data ?? [];
-}
-
-async function fetchJson(url, options = {}) {
-    const response = await fetch(url, options);
-    const data = await response.json();
-    return data;
-}
-
-function showSuccess(msg) {
-    if (window.alertify) alertify.success(msg);
-    else alert(msg);
-}
-
-function showError(msg) {
-    if (window.alertify) alertify.error(msg);
-    else alert(msg);
-=======
-// ============================================================================
-// FUNCIONES DE CARGA
-// ============================================================================
-
 function cargarDashboard() {
-    fetchJson(`${API_BASE}/curriculoAnalisis?action=dashboard`)
-        .then(data => {
-            if (data.code === 200 && data.data) {
-                const d = data.data;
-                document.getElementById('total-cursos').textContent = d.cursos ? d.cursos.length : 0;
-                document.getElementById('total-competencias').textContent = d.competencias ? d.competencias.length : 0;
-                document.getElementById('total-objetivos').textContent = d.objetivos ? d.objetivos.length : 0;
-                document.getElementById('total-programas').textContent = d.programas ? d.programas.length : 0;
+    $.ajax({
+        headers: {
+            "access-token": getToken()
+        },
+        type: "GET",
+        url: url_site(`api/curriculoAnalisis/dashboard`),
+        dataType: "json",
+        success: function (r) {
+            if (r.status == "success") {
+                $('#total-cursos').html(r.data.cursos.length);
+                $('#total-competencias').html(r.data.competencias.length);
+                $('#total-objetivos').html(r.data.objetivos.length);
+                $('#total-programas').html(r.data.programas.length);
             }
-        })
-        .catch(error => console.error('Error en dashboard:', error));
+        }
+    });
 }
 
-function cargarCursos() {
-    fetchJson(`${API_BASE}/cursos?action=listar`)
-        .then(data => {
-            if (data.code === 200 && data.data) {
-                renderizarCursos(data.data);
+function cargarFiltrosCurriculo() {
+    loadSelectOption({
+        url: url_site(`api/curriculoAnalisis/listar-programas`),
+        input: [
+            {
+                id: 'filtro-programa',
+                clearOptions: true,
+                emptyText: 'Todos los Programas',
+                selectedValue: ''
+            },
+            {
+                id: 'curso-programa',
+                clearOptions: true,
+                emptyText: 'Seleccione un Programa',
+                selectedValue: ''
             }
-        })
-        .catch(error => console.error('Error cargando cursos:', error));
+        ],
+        columnKey: 'id_programa',
+        columnDescription: 'nombre',
+        responsePath: 'data'
+    });
+
+    loadSelectOption({
+        url: url_site(`api/curriculoAnalisis/listar-competencias`),
+        input: [
+            {
+                id: 'filtro-competencia',
+                clearOptions: true,
+                emptyText: 'Todas las Competencias',
+                selectedValue: ''
+            },
+            {
+                id: 'objetivo-competencia',
+                clearOptions: true,
+                emptyText: 'Seleccione una Competencia',
+                selectedValue: ''
+            }
+        ],
+        columnKey: 'id_competencia',
+        columnDescription: 'nombre',
+        responsePath: 'data'
+    });
+
+    loadSelectOption({
+        url: url_site(`api/curriculoAnalisis/listar-objetivos`),
+        input: [
+            {
+                id: 'filtro-objetivo',
+                clearOptions: true,
+                emptyText: 'Todos los Objetivos',
+                selectedValue: ''
+            }
+        ],
+        columnKey: 'id_objetivo',
+        columnDescription: 'nombre',
+        responsePath: 'data'
+    });
 }
 
-function cargarCompetencias() {
-    fetchJson(`${API_BASE}/competencias?action=listar`)
-        .then(data => {
-            if (data.code === 200 && data.data) {
-                renderizarCompetencias(data.data);
-                llenarSelectCompetencias(data.data);
+function cargarTablaCursos() {
+    let programa = $('#filtro-programa').val();
+    let competencia = $('#filtro-competencia').val();
+    let objetivo = $('#filtro-objetivo').val();
+    let nivel = $('#filtro-nivel').val();
+
+    showModalLoading();
+
+    $.ajax({
+        headers: {
+            "access-token": getToken()
+        },
+        type: "GET",
+        url: url_site(`api/curriculoAnalisis/listar-cursos?programa=${programa}&competencia=${competencia}&objetivo=${objetivo}&nivel=${nivel}`),
+        dataType: "json",
+        success: function (r) {
+
+            $('#tbl-cursos').DataTable().clear();
+            $('#tbl-cursos').DataTable().destroy();
+
+            let t = $('#tbl-cursos').DataTable({
+                paging: true,
+                ordering: true,
+                info: false,
+                searching: true,
+                order: [[1, "asc"]],
+                dom: 'Bfrtip',
+                buttons: [{
+                    extend: 'excel',
+                    title: 'REPORTE: Listado de Cursos'
+                }]
+            });
+
+            if (r.status == "success") {
+                r.data.forEach((curso) => {
+                    t.row.add([
+                        curso.codigo,
+                        curso.nombre,
+                        curso.programa,
+                        curso.creditos,
+                        (curso.competencias || '').split('||').join('<br>'),
+                        (curso.objetivos_nivel || '').split('||').join('<br>'),
+                        `<button class="btn btn-xs btn-warning btnEditCurso" curso="${curso.id_curso}">
+                            <i class="fa fa-pencil" aria-hidden="true"></i> Editar
+                        </button>
+                        <button class="btn btn-xs btn-danger btnDeleteCurso" curso="${curso.id_curso}">
+                            <i class="fa fa-trash" aria-hidden="true"></i> Eliminar
+                        </button>`
+                    ]);
+                });
             }
-        })
-        .catch(error => console.error('Error cargando competencias:', error));
+
+            t.draw();
+        },
+        error: function (xhr) {
+            alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+        },
+        complete: function () {
+            hideModalLoading();
+        }
+    }).done(function () {
+        hideModalLoading();
+    });
 }
 
-function cargarObjetivos() {
-    fetchJson(`${API_BASE}/objetivos?action=listar`)
-        .then(data => {
-            if (data.code === 200 && data.data) {
-                renderizarObjetivos(data.data);
+function cargarTablaCompetencias() {
+    showModalLoading();
+
+    $.ajax({
+        headers: {
+            "access-token": getToken()
+        },
+        type: "GET",
+        url: url_site(`api/curriculoAnalisis/listar-competencias`),
+        dataType: "json",
+        success: function (r) {
+
+            $('#tbl-competencias').DataTable().clear();
+            $('#tbl-competencias').DataTable().destroy();
+
+            let t = $('#tbl-competencias').DataTable({
+                paging: true,
+                ordering: true,
+                info: false,
+                searching: true,
+                order: [[0, "asc"]]
+            });
+
+            if (r.status == "success") {
+                r.data.forEach((comp) => {
+                    t.row.add([
+                        comp.id_competencia,
+                        comp.nombre,
+                        comp.descripcion || '',
+                        comp.total_objetivos || 0,
+                        `<button class="btn btn-xs btn-warning btnEditCompetencia" competencia="${comp.id_competencia}">
+                            <i class="fa fa-pencil" aria-hidden="true"></i> Editar
+                        </button>
+                        <button class="btn btn-xs btn-danger btnDeleteCompetencia" competencia="${comp.id_competencia}">
+                            <i class="fa fa-trash" aria-hidden="true"></i> Eliminar
+                        </button>`
+                    ]);
+                });
             }
-        })
-        .catch(error => console.error('Error cargando objetivos:', error));
+
+            t.draw();
+        },
+        error: function (xhr) {
+            alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+        },
+        complete: function () {
+            hideModalLoading();
+        }
+    }).done(function () {
+        hideModalLoading();
+    });
 }
 
-function cargarProgramas() {
-    console.log('→ Cargando programas...');
-    fetchJson(`${API_BASE}/programas?action=listar`)
-        .then(data => {
-            console.log('✓ Respuesta API programas:', data);
-            
-            // La estructura puede ser {success/code, data} según cómo responda Result::message
-            const programas = data.data || data.resultado || data;
-            
-            if (Array.isArray(programas) && programas.length > 0) {
-                console.log('✓ Programas recibidos:', programas);
-                llenarSelectProgramas(programas);
-            } else {
-                console.warn('⚠ Sin programas en respuesta');
-                llenarSelectProgramas([]);
+function cargarTablaObjetivos() {
+    showModalLoading();
+
+    $.ajax({
+        headers: {
+            "access-token": getToken()
+        },
+        type: "GET",
+        url: url_site(`api/curriculoAnalisis/listar-objetivos`),
+        dataType: "json",
+        success: function (r) {
+
+            $('#tbl-objetivos').DataTable().clear();
+            $('#tbl-objetivos').DataTable().destroy();
+
+            let t = $('#tbl-objetivos').DataTable({
+                paging: true,
+                ordering: true,
+                info: false,
+                searching: true,
+                order: [[0, "asc"]]
+            });
+
+            if (r.status == "success") {
+                r.data.forEach((obj) => {
+                    t.row.add([
+                        obj.id_objetivo,
+                        obj.nombre,
+                        obj.competencia || '',
+                        obj.descripcion || '',
+                        obj.total_cursos || 0,
+                        `<button class="btn btn-xs btn-warning btnEditObjetivo" objetivo="${obj.id_objetivo}">
+                            <i class="fa fa-pencil" aria-hidden="true"></i> Editar
+                        </button>
+                        <button class="btn btn-xs btn-danger btnDeleteObjetivo" objetivo="${obj.id_objetivo}">
+                            <i class="fa fa-trash" aria-hidden="true"></i> Eliminar
+                        </button>`
+                    ]);
+                });
             }
-        })
-        .catch(error => {
-            console.error('✗ Error cargando programas:', error);
-            llenarSelectProgramas([]);
-        });
+
+            t.draw();
+        },
+        error: function (xhr) {
+            alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+        },
+        complete: function () {
+            hideModalLoading();
+        }
+    }).done(function () {
+        hideModalLoading();
+    });
 }
 
 function cargarAnalisis() {
-    fetchJson(`${API_BASE}/curriculoAnalisis?action=analisisCobertura`)
-        .then(data => {
-            if (data.code === 200 && data.data) {
-                renderizarGraficos(data.data);
+    $.ajax({
+        headers: {
+            "access-token": getToken()
+        },
+        type: "GET",
+        url: url_site(`api/curriculoAnalisis/analisis-cobertura`),
+        dataType: "json",
+        success: function (r) {
+            if (r.status == "success") {
+                renderizarGraficos(r.data);
             }
-        })
-        .catch(error => console.error('Error cargando análisis:', error));
->>>>>>> theirs
-}
-
-async function cargarDashboard() {
-    try {
-        const data = await fetchJson('api/curriculoAnalisis?action=dashboard');
-        const d = data?.data;
-        if (!d) return;
-
-        document.getElementById('total-cursos').textContent = d.cursos?.length || 0;
-        document.getElementById('total-competencias').textContent = d.competencias?.length || 0;
-        document.getElementById('total-objetivos').textContent = d.objetivos?.length || 0;
-        document.getElementById('total-programas').textContent = d.programas?.length || 0;
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function cargarCursos() {
-    try {
-        const data = await fetchJson('api/curriculoAnalisis?action=listarCursos');
-        estado.cursos = parseResponse(data);
-        renderizarCursos(estado.cursos);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function cargarProgramas() {
-    try {
-        const data = await fetchJson('api/programas?action=listar');
-        estado.programas = parseResponse(data);
-        llenarSelectProgramas(estado.programas);
-    } catch (error) {
-        estado.programas = [];
-        llenarSelectProgramas([]);
-        console.error(error);
-    }
-}
-
-async function cargarCompetencias() {
-    try {
-        const data = await fetchJson('api/curriculoAnalisis?action=dashboard');
-        estado.competencias = data?.data?.competencias || [];
-        renderizarCompetencias(estado.competencias);
-        llenarSelectCompetencias(estado.competencias);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function cargarObjetivos() {
-    try {
-        const data = await fetchJson('api/curriculoAnalisis?action=dashboard');
-        estado.objetivos = data?.data?.objetivos || [];
-        renderizarObjetivos(estado.objetivos);
-        llenarSelectObjetivos(estado.objetivos);
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-async function cargarAnalisis() {
-    try {
-        const data = await fetchJson('api/curriculoAnalisis?action=analisisCobertura');
-        if (data?.data) {
-            renderizarGraficos(data.data);
+        },
+        error: function (xhr) {
+            alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
         }
-    } catch (error) {
-        console.error(error);
-    }
-}
-
-function renderizarCursos(cursos) {
-<<<<<<< ours
-<<<<<<< ours
-    const tbody = document.getElementById('tabla-cursos');
-=======
-=======
->>>>>>> theirs
-    const tbody = obtenerElementoPorIds(['tbody-cursos', 'tabla-cursos']);
-    if (!tbody) return;
->>>>>>> theirs
-    tbody.innerHTML = '';
-
-    if (!cursos.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="text-center">No hay cursos para los filtros seleccionados</td></tr>';
-        return;
-    }
-
-    cursos.forEach(curso => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${curso.codigo || ''}</td>
-            <td>${curso.nombre || ''}</td>
-            <td>${curso.programa || 'N/A'}</td>
-            <td>${curso.competencias || 'Sin asignar'}</td>
-            <td>${curso.objetivos || 'Sin asignar'}</td>
-            <td>${curso.niveles || '-'}</td>
-            <td>
-                <button class="btn btn-sm btn-info" onclick="editarCurso(${curso.id_curso})"><i class="fa fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="eliminarCurso(${curso.id_curso})"><i class="fa fa-trash"></i></button>
-            </td>
-        `;
-        tbody.appendChild(tr);
     });
 }
 
-function renderizarCompetencias(competencias) {
-<<<<<<< ours
-<<<<<<< ours
-    const tbody = document.getElementById('tabla-competencias');
-=======
-=======
->>>>>>> theirs
-    const tbody = obtenerElementoPorIds(['tbody-competencias', 'tabla-competencias']);
-    if (!tbody) return;
->>>>>>> theirs
-    tbody.innerHTML = '';
-
-    if (!competencias.length) {
-        tbody.innerHTML = '<tr><td colspan="4" class="text-center">No hay competencias registradas</td></tr>';
-        return;
-    }
-
-    competencias.forEach(c => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${c.nombre}</td>
-            <td>${c.descripcion || ''}</td>
-            <td><span class="badge badge-primary">${c.total_objetivos || 0}</span></td>
-            <td>
-                <button class="btn btn-sm btn-info" onclick="editarCompetencia(${c.id_competencia})"><i class="fa fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="eliminarCompetencia(${c.id_competencia})"><i class="fa fa-trash"></i></button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function renderizarObjetivos(objetivos) {
-<<<<<<< ours
-<<<<<<< ours
-    const tbody = document.getElementById('tabla-objetivos');
-=======
-=======
->>>>>>> theirs
-    const tbody = obtenerElementoPorIds(['tbody-objetivos', 'tabla-objetivos']);
-    if (!tbody) return;
->>>>>>> theirs
-    tbody.innerHTML = '';
-
-    if (!objetivos.length) {
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center">No hay objetivos registrados</td></tr>';
-        return;
-    }
-
-    objetivos.forEach(o => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-            <td>${o.nombre}</td>
-            <td>${o.competencia || 'N/A'}</td>
-            <td>${o.descripcion || ''}</td>
-            <td><span class="badge badge-success">${o.total_cursos || 0}</span></td>
-            <td>
-                <button class="btn btn-sm btn-info" onclick="editarObjetivo(${o.id_objetivo})"><i class="fa fa-edit"></i></button>
-                <button class="btn btn-sm btn-danger" onclick="eliminarObjetivo(${o.id_objetivo})"><i class="fa fa-trash"></i></button>
-            </td>
-        `;
-        tbody.appendChild(tr);
-    });
-}
-
-function llenarSelectProgramas(programas) {
-    const selectCurso = document.getElementById('curso-programa');
-    const selectFiltro = document.getElementById('filtro-programa');
-
-    selectCurso.innerHTML = '<option value="">Seleccionar programa</option>';
-    selectFiltro.innerHTML = '<option value="">Todos</option>';
-
-    programas.forEach(p => {
-        selectCurso.innerHTML += `<option value="${p.id_programa}">${p.nombre}</option>`;
-        selectFiltro.innerHTML += `<option value="${p.id_programa}">${p.nombre}</option>`;
-    });
-}
-
-function llenarSelectCompetencias(competencias) {
-    const selectObjetivo = document.getElementById('objetivo-competencia');
-    const selectFiltro = document.getElementById('filtro-competencia');
-
-    selectObjetivo.innerHTML = '<option value="">Seleccionar competencia</option>';
-    selectFiltro.innerHTML = '<option value="">Todas</option>';
-
-    competencias.forEach(c => {
-        selectObjetivo.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
-        selectFiltro.innerHTML += `<option value="${c.id_competencia}">${c.nombre}</option>`;
-    });
-}
-
-function llenarSelectObjetivos(objetivos) {
-    const selectFiltro = document.getElementById('filtro-objetivo');
-    selectFiltro.innerHTML = '<option value="">Todos</option>';
-    objetivos.forEach(o => {
-        selectFiltro.innerHTML += `<option value="${o.id_objetivo}">${o.nombre}</option>`;
-    });
-}
-
-function renderizarGraficos(analisis) {
+function renderizarGraficos(data) {
     const ctxObjetivos = document.getElementById('grafico-objetivos');
     const ctxCompetencias = document.getElementById('grafico-competencias');
 
-    if (!ctxObjetivos || !ctxCompetencias) return;
-    if (chartObjetivos) chartObjetivos.destroy();
-    if (chartCompetencias) chartCompetencias.destroy();
-
-    chartObjetivos = new Chart(ctxObjetivos, {
-        type: 'doughnut',
-        data: {
-            labels: ['Sin asignar', 'Asignados'],
-            datasets: [{
-                data: [analisis.objetivosSinAsignar, analisis.totalObjetivos - analisis.objetivosSinAsignar],
-                backgroundColor: ['#dc3545', '#28a745']
-            }]
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: `${analisis.porcentajeObjetivosSin}% sin asignar`
-                }
-            }
-        }
-    });
-
-    chartCompetencias = new Chart(ctxCompetencias, {
-        type: 'doughnut',
-        data: {
-            labels: ['Sin objetivos', 'Con objetivos'],
-            datasets: [{
-                data: [analisis.competenciasSinObjetivos, analisis.totalCompetencias - analisis.competenciasSinObjetivos],
-                backgroundColor: ['#ffc107', '#007bff']
-            }]
-        },
-        options: {
-            plugins: {
-                title: {
-                    display: true,
-                    text: `${analisis.porcentajeCompetenciasSin}% sin objetivos`
-                }
-            }
-        }
-    });
-}
-
-<<<<<<< ours
-async function filtrarCursos() {
-    const programa = document.getElementById('filtro-programa').value;
-    const competencia = document.getElementById('filtro-competencia').value;
-    const objetivo = document.getElementById('filtro-objetivo').value;
-    const nivel = document.getElementById('filtro-nivel').value;
-
-    const params = new URLSearchParams({ action: 'listarCursos', programa, competencia, objetivo, nivel });
-=======
-// ============================================================================
-// FUNCIONES AUXILIARES
-// ============================================================================
-
-function llenarSelectProgramas(programas) {
-    console.log('→ Rellenando select de programas con:', programas);
-    const select = obtenerElementoPorIds(['curso-programa']);
-    const selectFiltroPrograma = obtenerElementoPorIds(['filtro-programa', 'filtro-programa-cursos']);
-    console.log('→ Select encontrado:', select);
-    
-    if (!select) {
-        console.error('✗ Select curso-programa NO encontrado. Reintentando...');
-        setTimeout(() => llenarSelectProgramas(programas), 500);
-        return;
+    if (chartObjetivos) {
+        chartObjetivos.destroy();
     }
-    
-    select.innerHTML = '<option value="">Selecciona un programa</option>';
-    if (selectFiltroPrograma) {
-        selectFiltroPrograma.innerHTML = '<option value="">Todos los Programas</option>';
+
+    if (chartCompetencias) {
+        chartCompetencias.destroy();
     }
-    console.log('✓ Select limpiado');
-    
-    if (programas && Array.isArray(programas)) {
-        programas.forEach((prog, idx) => {
-            console.log(`  → Agregando programa ${idx + 1}:`, prog.id_programa, prog.nombre);
-            const option = document.createElement('option');
-            option.value = prog.id_programa || '';
-            option.textContent = prog.nombre || '';
-            select.appendChild(option);
-            if (selectFiltroPrograma) {
-                const optionFiltro = document.createElement('option');
-                optionFiltro.value = prog.id_programa || '';
-                optionFiltro.textContent = prog.nombre || '';
-                selectFiltroPrograma.appendChild(optionFiltro);
+
+    if (ctxObjetivos) {
+        chartObjetivos = new Chart(ctxObjetivos, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sin asignar', 'Asignados'],
+                datasets: [{
+                    data: [
+                        data.objetivosSinAsignar,
+                        (data.totalObjetivos - data.objetivosSinAsignar)
+                    ],
+                    backgroundColor: ['#f39c12', '#00a65a']
+                }]
             }
         });
-        console.log(`✓ ${programas.length} programas agregados al select`);
-    } else {
-        console.error('✗ Programas no es un array:', programas);
+    }
+
+    if (ctxCompetencias) {
+        chartCompetencias = new Chart(ctxCompetencias, {
+            type: 'doughnut',
+            data: {
+                labels: ['Sin objetivos', 'Con objetivos'],
+                datasets: [{
+                    data: [
+                        data.competenciasSinObjetivos,
+                        (data.totalCompetencias - data.competenciasSinObjetivos)
+                    ],
+                    backgroundColor: ['#dd4b39', '#3c8dbc']
+                }]
+            }
+        });
     }
 }
 
-function llenarSelectCompetencias(competencias) {
-    const select = obtenerElementoPorIds(['objetivo-competencia']);
-    const selectFiltro = obtenerElementoPorIds(['filtro-competencia', 'filtro-competencia-cursos']);
-    if (select) select.innerHTML = '<option value="">Seleccionar Competencia</option>';
-    if (selectFiltro) selectFiltro.innerHTML = '<option value="">Todas las Competencias</option>';
-    
-    competencias.forEach(comp => {
-        const option = document.createElement('option');
-        option.value = comp.id_competencia || comp.id;
-        option.textContent = comp.nombre;
-        if (select) select.appendChild(option);
-        
-        const optionFiltro = document.createElement('option');
-        optionFiltro.value = comp.id_competencia || comp.id;
-        optionFiltro.textContent = comp.nombre;
-        if (selectFiltro) selectFiltro.appendChild(optionFiltro);
-    });
-}
->>>>>>> theirs
-
-    try {
-        const data = await fetchJson(`api/curriculoAnalisis?${params.toString()}`);
-        renderizarCursos(data?.data || []);
-    } catch (error) {
-        console.error(error);
+function validateFormCurso() {
+    if ($('#curso-programa').val() == "" || $('#curso-programa').val() == null) {
+        alertSwal('error', 'Programa', 'Este campo es obligatorio');
+        $("#curso-programa").focus();
+        return false;
     }
-}
 
-function limpiarFiltros() {
-    document.getElementById('filtro-programa').value = '';
-    document.getElementById('filtro-competencia').value = '';
-    document.getElementById('filtro-objetivo').value = '';
-    document.getElementById('filtro-nivel').value = '';
-    filtrarCursos();
-}
-
-function mostrarModalCurso() {
-    document.getElementById('titulo-modal-curso').textContent = 'Nuevo Curso';
-    document.getElementById('formCurso').reset();
-    document.getElementById('curso-id').value = '';
-    $('#modalCurso').modal('show');
-}
-
-function mostrarModalCompetencia() {
-    document.getElementById('titulo-modal-competencia').textContent = 'Nueva Competencia';
-    document.getElementById('formCompetencia').reset();
-    document.getElementById('competencia-id').value = '';
-    $('#modalCompetencia').modal('show');
-}
-
-function mostrarModalObjetivo() {
-    document.getElementById('titulo-modal-objetivo').textContent = 'Nuevo Objetivo';
-    document.getElementById('formObjetivo').reset();
-    document.getElementById('objetivo-id').value = '';
-    $('#modalObjetivo').modal('show');
-}
-
-async function guardarCurso() {
-    const id = document.getElementById('curso-id').value;
-    const payload = {
-        id_curso: id,
-        id_programa: document.getElementById('curso-programa').value,
-        nombre: document.getElementById('curso-nombre').value,
-        codigo: document.getElementById('curso-codigo').value,
-        descripcion: document.getElementById('curso-descripcion').value,
-        creditos: document.getElementById('curso-creditos').value
-    };
-
-<<<<<<< ours
-    const action = id ? 'actualizar' : 'crear';
-    const data = await fetchJson(`api/cursos?action=${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(payload)
-=======
-    const url = id ? 
-        `${API_BASE}/cursos?action=actualizar` :
-        `${API_BASE}/cursos?action=crear`;
-
-    fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(datos)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.code === 200 || data.code === 201) {
-            $('#modalCurso').modal('hide');
-            cargarCursos();
-            mostrarNotificacion('success', data.msg);
-        } else {
-            mostrarNotificacion('error', data.msg);
-        }
->>>>>>> theirs
-    });
-
-    if (data.code === 200 || data.code === 201) {
-        showSuccess(data.msg || 'Curso guardado');
-        $('#modalCurso').modal('hide');
-        await cargarCursos();
-        await cargarDashboard();
-    } else {
-        showError(data.msg || 'No se pudo guardar el curso');
+    if ($('#curso-nombre').val() == "" || $('#curso-nombre').val() == null) {
+        alertSwal('error', 'Curso', 'Este campo es obligatorio');
+        $("#curso-nombre").focus();
+        return false;
     }
-}
 
-async function guardarCompetencia() {
-    const id = document.getElementById('competencia-id').value;
-    const payload = {
-        id_competencia: id,
-        nombre: document.getElementById('competencia-nombre').value,
-        descripcion: document.getElementById('competencia-descripcion').value
-    };
-
-<<<<<<< ours
-    const action = id ? 'actualizar' : 'crear';
-    const data = await fetchJson(`api/competencias?action=${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(payload)
-=======
-    const url = id ? 
-        `${API_BASE}/competencias?action=actualizar` :
-        `${API_BASE}/competencias?action=crear`;
-
-    fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(datos)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.code === 200 || data.code === 201) {
-            $('#modalCompetencia').modal('hide');
-            cargarCompetencias();
-            mostrarNotificacion('success', data.msg);
-        } else {
-            mostrarNotificacion('error', data.msg);
-        }
->>>>>>> theirs
-    });
-
-    if (data.code === 200 || data.code === 201) {
-        showSuccess(data.msg || 'Competencia guardada');
-        $('#modalCompetencia').modal('hide');
-        await cargarCompetencias();
-        await cargarObjetivos();
-        await cargarDashboard();
-        await cargarAnalisis();
-    } else {
-        showError(data.msg || 'No se pudo guardar la competencia');
+    if ($('#curso-codigo').val() == "" || $('#curso-codigo').val() == null) {
+        alertSwal('error', 'Código', 'Este campo es obligatorio');
+        $("#curso-codigo").focus();
+        return false;
     }
+
+    return true;
 }
 
-async function guardarObjetivo() {
-    const id = document.getElementById('objetivo-id').value;
-    const payload = {
-        id_objetivo: id,
-        id_competencia: document.getElementById('objetivo-competencia').value,
-        nombre: document.getElementById('objetivo-nombre').value,
-        descripcion: document.getElementById('objetivo-descripcion').value
-    };
-
-<<<<<<< ours
-    const action = id ? 'actualizar' : 'crear';
-    const data = await fetchJson(`api/objetivos?action=${action}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(payload)
-=======
-    const url = id ? 
-        `${API_BASE}/objetivos?action=actualizar` :
-        `${API_BASE}/objetivos?action=crear`;
-
-    fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams(datos)
-    })
-    .then(response => response.json())
-    .then(data => {
-        if (data.code === 200 || data.code === 201) {
-            $('#modalObjetivo').modal('hide');
-            cargarObjetivos();
-            cargarCompetencias();
-            mostrarNotificacion('success', data.msg);
-        } else {
-            mostrarNotificacion('error', data.msg);
-        }
->>>>>>> theirs
-    });
-
-    if (data.code === 200 || data.code === 201) {
-        showSuccess(data.msg || 'Objetivo guardado');
-        $('#modalObjetivo').modal('hide');
-        await cargarObjetivos();
-        await cargarCursos();
-        await cargarDashboard();
-        await cargarAnalisis();
-    } else {
-        showError(data.msg || 'No se pudo guardar el objetivo');
+function validateFormCompetencia() {
+    if ($('#competencia-nombre').val() == "" || $('#competencia-nombre').val() == null) {
+        alertSwal('error', 'Competencia', 'Este campo es obligatorio');
+        $("#competencia-nombre").focus();
+        return false;
     }
+
+    return true;
 }
 
-function editarCurso(id) {
-    const curso = estado.cursos.find(c => Number(c.id_curso) === Number(id));
-    if (!curso) return;
-
-    document.getElementById('titulo-modal-curso').textContent = 'Editar Curso';
-    document.getElementById('curso-id').value = curso.id_curso;
-    document.getElementById('curso-programa').value = curso.id_programa;
-    document.getElementById('curso-nombre').value = curso.nombre || '';
-    document.getElementById('curso-codigo').value = curso.codigo || '';
-    document.getElementById('curso-descripcion').value = curso.descripcion || '';
-    document.getElementById('curso-creditos').value = curso.creditos || 0;
-    $('#modalCurso').modal('show');
-}
-
-function editarCompetencia(id) {
-    const competencia = estado.competencias.find(c => Number(c.id_competencia) === Number(id));
-    if (!competencia) return;
-
-    document.getElementById('titulo-modal-competencia').textContent = 'Editar Competencia';
-    document.getElementById('competencia-id').value = competencia.id_competencia;
-    document.getElementById('competencia-nombre').value = competencia.nombre || '';
-    document.getElementById('competencia-descripcion').value = competencia.descripcion || '';
-    $('#modalCompetencia').modal('show');
-}
-
-function editarObjetivo(id) {
-<<<<<<< ours
-    const objetivo = estado.objetivos.find(o => Number(o.id_objetivo) === Number(id));
-    if (!objetivo) return;
-
-    document.getElementById('titulo-modal-objetivo').textContent = 'Editar Objetivo';
-    document.getElementById('objetivo-id').value = objetivo.id_objetivo;
-    document.getElementById('objetivo-competencia').value = objetivo.id_competencia;
-    document.getElementById('objetivo-nombre').value = objetivo.nombre || '';
-    document.getElementById('objetivo-descripcion').value = objetivo.descripcion || '';
-    $('#modalObjetivo').modal('show');
-}
-
-async function eliminarCurso(id) {
-    if (!confirm('¿Seguro que deseas eliminar este curso?')) return;
-
-    const data = await fetchJson('api/cursos?action=eliminar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ id_curso: id })
-    });
-
-    if (data.code === 200) {
-        showSuccess(data.msg || 'Curso eliminado');
-        await cargarCursos();
-        await cargarDashboard();
-        await cargarAnalisis();
-    } else {
-        showError(data.msg || 'No se pudo eliminar el curso');
+function validateFormObjetivo() {
+    if ($('#objetivo-competencia').val() == "" || $('#objetivo-competencia').val() == null) {
+        alertSwal('error', 'Competencia', 'Este campo es obligatorio');
+        $("#objetivo-competencia").focus();
+        return false;
     }
-}
 
-async function eliminarCompetencia(id) {
-    if (!confirm('¿Seguro que deseas eliminar esta competencia?')) return;
-
-    const data = await fetchJson('api/competencias?action=eliminar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ id_competencia: id })
-    });
-
-    if (data.code === 200) {
-        showSuccess(data.msg || 'Competencia eliminada');
-        await cargarCompetencias();
-        await cargarObjetivos();
-        await cargarCursos();
-        await cargarDashboard();
-        await cargarAnalisis();
-    } else {
-        showError(data.msg || 'No se pudo eliminar la competencia');
+    if ($('#objetivo-nombre').val() == "" || $('#objetivo-nombre').val() == null) {
+        alertSwal('error', 'Objetivo', 'Este campo es obligatorio');
+        $("#objetivo-nombre").focus();
+        return false;
     }
-}
 
-async function eliminarObjetivo(id) {
-    if (!confirm('¿Seguro que deseas eliminar este objetivo?')) return;
-
-    const data = await fetchJson('api/objetivos?action=eliminar', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ id_objetivo: id })
-    });
-
-    if (data.code === 200) {
-        showSuccess(data.msg || 'Objetivo eliminado');
-        await cargarObjetivos();
-        await cargarCursos();
-        await cargarDashboard();
-        await cargarAnalisis();
-    } else {
-        showError(data.msg || 'No se pudo eliminar el objetivo');
-=======
-    // Implementar carga de datos para editar
-    mostrarModalObjetivo();
-}
-
-function eliminarCurso(id) {
-    if (confirm('¿Estás seguro de que deseas eliminar este curso?')) {
-        fetch(`${API_BASE}/cursos?action=eliminar&id=${id}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.code === 200) {
-                    cargarCursos();
-                    mostrarNotificacion('success', data.msg);
-                } else {
-                    mostrarNotificacion('error', data.msg);
-                }
-            });
-    }
-}
-
-function eliminarCompetencia(id) {
-    if (confirm('¿Estás seguro de que deseas eliminar esta competencia?')) {
-        fetch(`${API_BASE}/competencias?action=eliminar&id=${id}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.code === 200) {
-                    cargarCompetencias();
-                    mostrarNotificacion('success', data.msg);
-                } else {
-                    mostrarNotificacion('error', data.msg);
-                }
-            });
-    }
-}
-
-function eliminarObjetivo(id) {
-    if (confirm('¿Estás seguro de que deseas eliminar este objetivo?')) {
-        fetch(`${API_BASE}/objetivos?action=eliminar&id=${id}`, { method: 'DELETE' })
-            .then(response => response.json())
-            .then(data => {
-                if (data.code === 200) {
-                    cargarObjetivos();
-                    cargarCompetencias();
-                    mostrarNotificacion('success', data.msg);
-                } else {
-                    mostrarNotificacion('error', data.msg);
-                }
-            });
->>>>>>> theirs
-    }
+    return true;
 }

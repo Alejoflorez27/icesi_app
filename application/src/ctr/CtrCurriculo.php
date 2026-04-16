@@ -1,31 +1,39 @@
 <?php
 
-/**
- * Controlador: Gestion Curricular
- * Consolida dashboard, filtros y analisis del modulo.
- */
-class CtrCurriculo extends DATABASE
+class CtrCurriculo
 {
-    public function __construct()
+    public static function dashboard()
     {
-        parent::__construct(1);
+        $cursos = self::listarCursos();
+        $programas = self::listarProgramas();
+        $competencias = self::listarCompetencias();
+        $objetivos = self::listarObjetivos();
+        $objetivosSinAsignar = self::countObjetivosSinAsignar();
+        $competenciasSinObjetivos = self::countCompetenciasSinObjetivos();
+
+        return Result::success(
+            array(
+                'cursos' => Result::getData($cursos),
+                'programas' => Result::getData($programas),
+                'competencias' => Result::getData($competencias),
+                'objetivos' => Result::getData($objetivos),
+                'objetivosSinAsignar' => $objetivosSinAsignar,
+                'competenciasSinObjetivos' => $competenciasSinObjetivos
+            ),
+            "dashboard curricular"
+        );
     }
 
-    public function dashboard()
+    public static function listarCursos($filtros = array())
     {
-        return [
-            'cursos' => $this->listarCursos(),
-            'programas' => $this->listarProgramas(),
-            'competencias' => $this->listarCompetencias(),
-            'objetivos' => $this->listarObjetivos(),
-            'objetivosSinAsignar' => $this->countValue("SELECT COUNT(*) AS total FROM v_objetivos_sin_asignar"),
-            'competenciasSinObjetivos' => $this->countValue("SELECT COUNT(*) AS total FROM v_competencias_sin_objetivos")
-        ];
-    }
+        $programa = isset($filtros['programa']) && $filtros['programa'] !== "" ? $filtros['programa'] : null;
+        $competencia = isset($filtros['competencia']) && $filtros['competencia'] !== "" ? $filtros['competencia'] : null;
+        $objetivo = isset($filtros['objetivo']) && $filtros['objetivo'] !== "" ? $filtros['objetivo'] : null;
+        $nivel = isset($filtros['nivel']) && $filtros['nivel'] !== "" ? $filtros['nivel'] : null;
 
-    public function listarCursos($filtros = [])
-    {
-        $sql = "SELECT
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
                     c.id_curso,
                     c.id_programa,
                     c.codigo,
@@ -35,39 +43,27 @@ class CtrCurriculo extends DATABASE
                     p.nombre AS programa,
                     COUNT(DISTINCT co.id_objetivo) AS total_objetivos,
                     COUNT(DISTINCT o.id_competencia) AS total_competencias,
-                    COALESCE(GROUP_CONCAT(DISTINCT comp.nombre ORDER BY comp.nombre SEPARATOR ', '), '') AS competencias,
-                    COALESCE(GROUP_CONCAT(DISTINCT o.nombre ORDER BY o.nombre SEPARATOR ', '), '') AS objetivos,
-                    COALESCE(GROUP_CONCAT(DISTINCT co.nivel ORDER BY co.nivel SEPARATOR ', '), '') AS niveles
+                    GROUP_CONCAT(DISTINCT comp.nombre ORDER BY comp.nombre SEPARATOR '||') AS competencias,
+                    GROUP_CONCAT(
+                        DISTINCT CONCAT(o.nombre, ' [', co.nivel, ']')
+                        ORDER BY o.nombre
+                        SEPARATOR '||'
+                    ) AS objetivos_nivel,
+                    GROUP_CONCAT(
+                        DISTINCT co.nivel
+                        ORDER BY FIELD(co.nivel, 'I', 'F', 'V')
+                        SEPARATOR ', '
+                    ) AS niveles
                 FROM cursos c
                 INNER JOIN programas p ON p.id_programa = c.id_programa
                 LEFT JOIN curso_objetivo co ON co.id_curso = c.id_curso
                 LEFT JOIN objetivos o ON o.id_objetivo = co.id_objetivo
                 LEFT JOIN competencias comp ON comp.id_competencia = o.id_competencia
-                WHERE 1=1";
-
-        $params = [];
-
-        if (!empty($filtros['programa'])) {
-            $sql .= " AND c.id_programa = :programa";
-            $params['programa'] = $filtros['programa'];
-        }
-
-        if (!empty($filtros['competencia'])) {
-            $sql .= " AND o.id_competencia = :competencia";
-            $params['competencia'] = $filtros['competencia'];
-        }
-
-        if (!empty($filtros['objetivo'])) {
-            $sql .= " AND co.id_objetivo = :objetivo";
-            $params['objetivo'] = $filtros['objetivo'];
-        }
-
-        if (!empty($filtros['nivel'])) {
-            $sql .= " AND co.nivel = :nivel";
-            $params['nivel'] = $filtros['nivel'];
-        }
-
-        $sql .= " GROUP BY
+                WHERE (:programa IS NULL OR c.id_programa = :programa)
+                  AND (:competencia IS NULL OR o.id_competencia = :competencia)
+                  AND (:objetivo IS NULL OR co.id_objetivo = :objetivo)
+                  AND (:nivel IS NULL OR co.nivel = :nivel)
+                GROUP BY
                     c.id_curso,
                     c.id_programa,
                     c.codigo,
@@ -75,83 +71,159 @@ class CtrCurriculo extends DATABASE
                     c.descripcion,
                     c.creditos,
                     p.nombre
-                  ORDER BY c.nombre";
-
-        return $this->fetchAllAssoc($sql, $params);
-    }
-
-    public function listarProgramas()
-    {
-        return $this->fetchAllAssoc(
-            "SELECT p.*, COUNT(DISTINCT c.id_curso) AS total_cursos
-             FROM programas p
-             LEFT JOIN cursos c ON c.id_programa = p.id_programa
-             GROUP BY p.id_programa, p.nombre, p.codigo, p.descripcion, p.activa, p.created_at, p.updated_at
-             ORDER BY p.nombre"
+                ORDER BY c.nombre
+            SQL,
+            array(
+                "programa" => $programa,
+                "competencia" => $competencia,
+                "objetivo" => $objetivo,
+                "nivel" => $nivel
+            ),
+            true,
+            "N"
         );
+
+        return Result::success($result, "listar cursos curriculares");
     }
 
-    public function listarCompetencias()
+    public static function listarProgramas()
     {
-        return $this->fetchAllAssoc(
-            "SELECT c.*,
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT 
+                    p.*,
+                    COUNT(DISTINCT c.id_curso) AS total_cursos
+                FROM programas p
+                LEFT JOIN cursos c ON c.id_programa = p.id_programa
+                GROUP BY
+                    p.id_programa,
+                    p.nombre,
+                    p.codigo,
+                    p.descripcion,
+                    p.created_at,
+                    p.updated_at
+                ORDER BY p.nombre
+            SQL,
+            array(),
+            true,
+            "N"
+        );
+
+        return Result::success($result, "listar programas");
+    }
+
+    public static function listarCompetencias()
+    {
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
+                    c.*,
                     COUNT(DISTINCT o.id_objetivo) AS total_objetivos
-             FROM competencias c
-             LEFT JOIN objetivos o ON o.id_competencia = c.id_competencia
-             GROUP BY c.id_competencia, c.nombre, c.descripcion, c.created_at, c.updated_at
-             ORDER BY c.nombre"
+                FROM competencias c
+                LEFT JOIN objetivos o ON o.id_competencia = c.id_competencia
+                GROUP BY
+                    c.id_competencia,
+                    c.nombre,
+                    c.descripcion,
+                    c.created_at,
+                    c.updated_at
+                ORDER BY c.nombre
+            SQL,
+            array(),
+            true,
+            "N"
         );
+
+        return Result::success($result, "listar competencias");
     }
 
-    public function listarObjetivos()
+    public static function listarObjetivos()
     {
-        return $this->fetchAllAssoc(
-            "SELECT o.*,
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
+                    o.*,
                     c.nombre AS competencia,
                     COUNT(DISTINCT co.id_curso) AS total_cursos
-             FROM objetivos o
-             INNER JOIN competencias c ON c.id_competencia = o.id_competencia
-             LEFT JOIN curso_objetivo co ON co.id_objetivo = o.id_objetivo
-             GROUP BY o.id_objetivo, o.id_competencia, o.nombre, o.descripcion, o.created_at, o.updated_at, c.nombre
-             ORDER BY o.nombre"
+                FROM objetivos o
+                INNER JOIN competencias c ON c.id_competencia = o.id_competencia
+                LEFT JOIN curso_objetivo co ON co.id_objetivo = o.id_objetivo
+                GROUP BY
+                    o.id_objetivo,
+                    o.id_competencia,
+                    o.nombre,
+                    o.descripcion,
+                    o.created_at,
+                    o.updated_at,
+                    c.nombre
+                ORDER BY o.nombre
+            SQL,
+            array(),
+            true,
+            "N"
         );
+
+        return Result::success($result, "listar objetivos");
     }
 
-    public function obtenerAnalisisCobertura()
+    public static function obtenerAnalisisCobertura()
     {
-        $totalObjetivos = $this->countValue("SELECT COUNT(*) AS total FROM objetivos");
-        $objetivosSinAsignar = $this->countValue("SELECT COUNT(*) AS total FROM v_objetivos_sin_asignar");
-        $totalCompetencias = $this->countValue("SELECT COUNT(*) AS total FROM competencias");
-        $competenciasSinObjetivos = $this->countValue("SELECT COUNT(*) AS total FROM v_competencias_sin_objetivos");
+        $totalObjetivos = self::countTabla("objetivos", "id_objetivo");
+        $objetivosSinAsignar = self::countObjetivosSinAsignar();
+        $totalCompetencias = self::countTabla("competencias", "id_competencia");
+        $competenciasSinObjetivos = self::countCompetenciasSinObjetivos();
 
-        return [
+        $result = array(
             'totalObjetivos' => $totalObjetivos,
             'objetivosSinAsignar' => $objetivosSinAsignar,
             'porcentajeObjetivosSin' => $totalObjetivos > 0 ? round(($objetivosSinAsignar / $totalObjetivos) * 100, 2) : 0,
             'totalCompetencias' => $totalCompetencias,
             'competenciasSinObjetivos' => $competenciasSinObjetivos,
             'porcentajeCompetenciasSin' => $totalCompetencias > 0 ? round(($competenciasSinObjetivos / $totalCompetencias) * 100, 2) : 0
-        ];
+        );
+
+        return Result::success($result, "analisis cobertura curricular");
     }
 
-    private function fetchAllAssoc($sql, $params = [])
+    private static function countTabla($tabla, $campo)
     {
-        $stmt = $this->getDb()->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value);
-        }
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = QuerySQL::select(
+            "SELECT COUNT($campo) AS total FROM $tabla",
+            array(),
+            false,
+            "N"
+        );
+
+        return intval($result['total'] ?? 0);
     }
 
-    private function countValue($sql, $params = [])
+    private static function countObjetivosSinAsignar()
     {
-        $stmt = $this->getDb()->prepare($sql);
-        foreach ($params as $key => $value) {
-            $stmt->bindValue(':' . $key, $value);
-        }
-        $stmt->execute();
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        return intval($row['total'] ?? 0);
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT COUNT(*) AS total
+                FROM v_objetivos_sin_asignar
+            SQL,
+            array(),
+            false,
+            "N"
+        );
+
+        return intval($result['total'] ?? 0);
+    }
+
+    private static function countCompetenciasSinObjetivos()
+    {
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT COUNT(*) AS total
+                FROM v_competencias_sin_objetivos
+            SQL,
+            array(),
+            false,
+            "N"
+        );
+
+        return intval($result['total'] ?? 0);
     }
 }
