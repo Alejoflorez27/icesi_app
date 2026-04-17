@@ -53,7 +53,7 @@ $(document).ready(function() {
                         
                     } 
                     else {*/
-                        window.location = url_site(`dashboard`);
+                        window.location = url_site(`curriculoGestion`);
                     //}
                     
                 } else {

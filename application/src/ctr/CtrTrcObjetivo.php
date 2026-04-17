@@ -1,131 +1,122 @@
 <?php
 
-/**
- * Controlador: Objetivos de Aprendizaje
- */
 class CtrTrcObjetivo
 {
     public static function listar()
     {
-        try {
-            $sql = "SELECT o.*, c.nombre as competencia 
-                    FROM objetivos o
-                    LEFT JOIN competencias c ON o.id_competencia = c.id_competencia
-                    ORDER BY o.nombre";
-            $resultado = new Conexion();
-            $resultado = $resultado->set($sql);
-            return Result::message("success", $resultado->resultado, 200);
-        } catch (Exception $e) {
-            return Result::error($e->getMessage(), 500);
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
+                    o.id_objetivo,
+                    o.id_competencia,
+                    o.nombre,
+                    o.descripcion,
+                    c.nombre AS competencia,
+                    COUNT(DISTINCT co.id_curso) AS total_cursos
+                FROM objetivos o
+                INNER JOIN competencias c ON c.id_competencia = o.id_competencia
+                LEFT JOIN curso_objetivo co ON co.id_objetivo = o.id_objetivo
+                GROUP BY
+                    o.id_objetivo,
+                    o.id_competencia,
+                    o.nombre,
+                    o.descripcion,
+                    c.nombre
+                ORDER BY o.nombre
+            SQL,
+            array(),
+            true,
+            "N"
+        );
+
+        return Result::success($result, "listar objetivos");
+    }
+
+    public static function obtener($id_objetivo)
+    {
+        if (!isset($id_objetivo) || $id_objetivo == "")
+            return Result::error(__FUNCTION__, "id_objetivo es requerido");
+
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
+                    o.id_objetivo,
+                    o.id_competencia,
+                    o.nombre,
+                    o.descripcion
+                FROM objetivos o
+                WHERE o.id_objetivo = :id_objetivo
+            SQL,
+            array(
+                "id_objetivo" => $id_objetivo
+            ),
+            false,
+            "N"
+        );
+
+        return Result::success($result, "obtener objetivo");
+    }
+
+    public static function crear($id_competencia, $nombre, $descripcion)
+    {
+        if (!isset($id_competencia) || $id_competencia == "")
+            return BaseResponse::error(__FUNCTION__, "Competencia es requerida");
+
+        if (!isset($nombre) || $nombre == "")
+            return BaseResponse::error(__FUNCTION__, "Nombre es requerido");
+
+        $obj_objetivo = new TrcObjetivo();
+        $obj_objetivo->setProperty('id_competencia', $id_competencia);
+        $obj_objetivo->setProperty('nombre', $nombre);
+        $obj_objetivo->setProperty('descripcion', $descripcion);
+
+        $result = $obj_objetivo->insert();
+
+        if ($result['success']) {
+            return BaseResponse::success($result);
+        } else {
+            return BaseResponse::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 
-    public static function obtener()
+    public static function actualizar($id_objetivo, $id_competencia, $nombre, $descripcion)
     {
-        try {
-            if (!isset($_POST['id_objetivo'])) {
-                return Result::error("ID del objetivo requerido", 400);
-            }
+        if (!isset($id_objetivo) || $id_objetivo == "")
+            return Result::error(__FUNCTION__, "id_objetivo es requerido");
 
-            $idObjetivo = intval($_POST['id_objetivo']);
-            $objetivo = new TrcObjetivo($idObjetivo);
-            
-            if (empty($objetivo->getIdObjetivo())) {
-                return Result::error("Objetivo no encontrado", 404);
-            }
+        if (!isset($id_competencia) || $id_competencia == "")
+            return Result::error(__FUNCTION__, "Competencia es requerida");
 
-            $datos = [
-                'id_objetivo' => $objetivo->getIdObjetivo(),
-                'id_competencia' => $objetivo->getIdCompetencia(),
-                'nombre' => $objetivo->getNombre(),
-                'descripcion' => $objetivo->getDescripcion()
-            ];
+        if (!isset($nombre) || $nombre == "")
+            return Result::error(__FUNCTION__, "Nombre es requerido");
 
-            return Result::message("success", $datos, 200);
-        } catch (Exception $e) {
-            return Result::error($e->getMessage(), 500);
+        $dao = new TrcObjetivo($id_objetivo);
+        $dao->setProperty('id_competencia', $id_competencia);
+        $dao->setProperty('nombre', $nombre);
+        $dao->setProperty('descripcion', $descripcion);
+
+        $result = $dao->update();
+
+        if ($result['success']) {
+            return Result::success($result);
+        } else {
+            return Result::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 
-    public static function crear()
+    public static function eliminar($id_objetivo)
     {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
+        if (!isset($id_objetivo) || $id_objetivo == "")
+            return Result::error(__FUNCTION__, "id_objetivo es requerido");
 
-            if (!isset($_POST['nombre']) || empty($_POST['nombre'])) {
-                return BaseResponse::error("Nombre requerido");
-            }
+        $dao = new TrcObjetivo($id_objetivo);
 
-            $objetivo = new TrcObjetivo();
-            $objetivo->setIdCompetencia($_POST['id_competencia'] ?? null);
-            $objetivo->setNombre($_POST['nombre']);
-            $objetivo->setDescripcion($_POST['descripcion'] ?? null);
-            
-            if ($objetivo->guardar()) {
-                return BaseResponse::message("Objetivo creado exitosamente");
-            } else {
-                return BaseResponse::error("Error al crear el objetivo");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
-        }
-    }
+        $result = $dao->delete();
 
-    public static function actualizar()
-    {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
-
-            if (!isset($_POST['id_objetivo']) || !isset($_POST['nombre'])) {
-                return BaseResponse::error("Datos incompletos");
-            }
-
-            $objetivo = new TrcObjetivo($_POST['id_objetivo']);
-            if (empty($objetivo->getIdObjetivo())) {
-                return BaseResponse::error("Objetivo no encontrado");
-            }
-
-            $objetivo->setIdCompetencia($_POST['id_competencia'] ?? $objetivo->getIdCompetencia());
-            $objetivo->setNombre($_POST['nombre']);
-            $objetivo->setDescripcion($_POST['descripcion'] ?? $objetivo->getDescripcion());
-            
-            if ($objetivo->guardar()) {
-                return BaseResponse::message("Objetivo actualizado exitosamente");
-            } else {
-                return BaseResponse::error("Error al actualizar");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
-        }
-    }
-
-    public static function eliminar()
-    {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
-
-            if (!isset($_POST['id_objetivo'])) {
-                return BaseResponse::error("ID requerido");
-            }
-
-            $objetivo = new TrcObjetivo($_POST['id_objetivo']);
-            if (empty($objetivo->getIdObjetivo())) {
-                return BaseResponse::error("Objetivo no encontrado");
-            }
-
-            if ($objetivo->eliminar()) {
-                return BaseResponse::message("Objetivo eliminado exitosamente");
-            } else {
-                return BaseResponse::error("Error al eliminar");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
+        if ($result['success']) {
+            return Result::success($result);
+        } else {
+            return Result::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 }

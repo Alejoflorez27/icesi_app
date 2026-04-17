@@ -1,125 +1,108 @@
 <?php
 
-/**
- * Controlador: Competencias Académicas
- */
 class CtrTrcCompetencia
 {
     public static function listar()
     {
-        try {
-            $sql = "SELECT * FROM competencias ORDER BY nombre";
-            $resultado = new Conexion();
-            $resultado = $resultado->set($sql);
-            return Result::message("success", $resultado->resultado, 200);
-        } catch (Exception $e) {
-            return Result::error($e->getMessage(), 500);
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
+                    c.id_competencia,
+                    c.nombre,
+                    c.descripcion,
+                    COUNT(DISTINCT o.id_objetivo) AS total_objetivos
+                FROM competencias c
+                LEFT JOIN objetivos o ON o.id_competencia = c.id_competencia
+                GROUP BY
+                    c.id_competencia,
+                    c.nombre,
+                    c.descripcion
+                ORDER BY c.nombre
+            SQL,
+            array(),
+            true,
+            "N"
+        );
+
+        return Result::success($result, "listar competencias");
+    }
+
+    public static function obtener($id_competencia)
+    {
+        if (!isset($id_competencia) || $id_competencia == "")
+            return Result::error(__FUNCTION__, "id_competencia es requerido");
+
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
+                    c.id_competencia,
+                    c.nombre,
+                    c.descripcion
+                FROM competencias c
+                WHERE c.id_competencia = :id_competencia
+            SQL,
+            array(
+                "id_competencia" => $id_competencia
+            ),
+            false,
+            "N"
+        );
+
+        return Result::success($result, "obtener competencia");
+    }
+
+    public static function crear($nombre, $descripcion)
+    {
+        if (!isset($nombre) || $nombre == "")
+            return BaseResponse::error(__FUNCTION__, "Nombre es requerido");
+
+        $obj_competencia = new TrcCompetencia();
+        $obj_competencia->setProperty('nombre', $nombre);
+        $obj_competencia->setProperty('descripcion', $descripcion);
+
+        $result = $obj_competencia->insert();
+
+        if ($result['success']) {
+            return BaseResponse::success($result);
+        } else {
+            return BaseResponse::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 
-    public static function obtener()
+    public static function actualizar($id_competencia, $nombre, $descripcion)
     {
-        try {
-            if (!isset($_POST['id_competencia'])) {
-                return Result::error("ID de la competencia requerido", 400);
-            }
+        if (!isset($id_competencia) || $id_competencia == "")
+            return Result::error(__FUNCTION__, "id_competencia es requerido");
 
-            $idCompetencia = intval($_POST['id_competencia']);
-            $competencia = new TrcCompetencia($idCompetencia);
-            
-            if (empty($competencia->getIdCompetencia())) {
-                return Result::error("Competencia no encontrada", 404);
-            }
+        if (!isset($nombre) || $nombre == "")
+            return Result::error(__FUNCTION__, "Nombre es requerido");
 
-            $datos = [
-                'id_competencia' => $competencia->getIdCompetencia(),
-                'nombre' => $competencia->getNombre(),
-                'descripcion' => $competencia->getDescripcion()
-            ];
+        $dao = new TrcCompetencia($id_competencia);
+        $dao->setProperty('nombre', $nombre);
+        $dao->setProperty('descripcion', $descripcion);
 
-            return Result::message("success", $datos, 200);
-        } catch (Exception $e) {
-            return Result::error($e->getMessage(), 500);
+        $result = $dao->update();
+
+        if ($result['success']) {
+            return Result::success($result);
+        } else {
+            return Result::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 
-    public static function crear()
+    public static function eliminar($id_competencia)
     {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
+        if (!isset($id_competencia) || $id_competencia == "")
+            return Result::error(__FUNCTION__, "id_competencia es requerido");
 
-            if (!isset($_POST['nombre']) || empty($_POST['nombre'])) {
-                return BaseResponse::error("Nombre requerido");
-            }
+        $dao = new TrcCompetencia($id_competencia);
 
-            $competencia = new TrcCompetencia();
-            $competencia->setNombre($_POST['nombre']);
-            $competencia->setDescripcion($_POST['descripcion'] ?? null);
-            
-            if ($competencia->guardar()) {
-                return BaseResponse::message("Competencia creada exitosamente");
-            } else {
-                return BaseResponse::error("Error al crear la competencia");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
-        }
-    }
+        $result = $dao->delete();
 
-    public static function actualizar()
-    {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
-
-            if (!isset($_POST['id_competencia']) || !isset($_POST['nombre'])) {
-                return BaseResponse::error("Datos incompletos");
-            }
-
-            $competencia = new TrcCompetencia($_POST['id_competencia']);
-            if (empty($competencia->getIdCompetencia())) {
-                return BaseResponse::error("Competencia no encontrada");
-            }
-
-            $competencia->setNombre($_POST['nombre']);
-            $competencia->setDescripcion($_POST['descripcion'] ?? $competencia->getDescripcion());
-            
-            if ($competencia->guardar()) {
-                return BaseResponse::message("Competencia actualizada exitosamente");
-            } else {
-                return BaseResponse::error("Error al actualizar");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
-        }
-    }
-
-    public static function eliminar()
-    {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
-
-            if (!isset($_POST['id_competencia'])) {
-                return BaseResponse::error("ID requerido");
-            }
-
-            $competencia = new TrcCompetencia($_POST['id_competencia']);
-            if (empty($competencia->getIdCompetencia())) {
-                return BaseResponse::error("Competencia no encontrada");
-            }
-
-            if ($competencia->eliminar()) {
-                return BaseResponse::message("Competencia eliminada exitosamente");
-            } else {
-                return BaseResponse::error("Error al eliminar");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
+        if ($result['success']) {
+            return Result::success($result);
+        } else {
+            return Result::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 }

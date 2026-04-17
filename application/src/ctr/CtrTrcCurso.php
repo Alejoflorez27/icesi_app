@@ -1,137 +1,128 @@
 <?php
 
-/**
- * Controlador: Cursos Académicos
- */
 class CtrTrcCurso
 {
     public static function listar()
     {
-        try {
-            $sql = "SELECT c.*, p.nombre as programa 
-                    FROM cursos c
-                    LEFT JOIN programas p ON c.id_programa = p.id_programa
-                    ORDER BY c.nombre";
-            $resultado = new Conexion();
-            $resultado = $resultado->set($sql);
-            return Result::message("success", $resultado->resultado, 200);
-        } catch (Exception $e) {
-            return Result::error($e->getMessage(), 500);
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT 
+                    c.id_curso,
+                    c.id_programa,
+                    c.codigo,
+                    c.nombre,
+                    c.descripcion,
+                    c.creditos,
+                    p.nombre AS programa
+                FROM cursos c
+                INNER JOIN programas p ON p.id_programa = c.id_programa
+                ORDER BY c.nombre
+            SQL,
+            array(),
+            true,
+            "N"
+        );
+
+        return Result::success($result, "listar cursos");
+    }
+
+    public static function obtener($id_curso)
+    {
+        if (!isset($id_curso) || $id_curso == "")
+            return Result::error(__FUNCTION__, "id_curso es requerido");
+
+        $result = QuerySQL::select(
+            <<<SQL
+                SELECT
+                    c.id_curso,
+                    c.id_programa,
+                    c.codigo,
+                    c.nombre,
+                    c.descripcion,
+                    c.creditos
+                FROM cursos c
+                WHERE c.id_curso = :id_curso
+            SQL,
+            array(
+                "id_curso" => $id_curso
+            ),
+            false,
+            "N"
+        );
+
+        return Result::success($result, "obtener curso");
+    }
+
+    public static function crear($id_programa, $nombre, $codigo, $descripcion, $creditos)
+    {
+        if (!isset($id_programa) || $id_programa == "")
+            return BaseResponse::error(__FUNCTION__, "Programa es requerido");
+
+        if (!isset($nombre) || $nombre == "")
+            return BaseResponse::error(__FUNCTION__, "Nombre es requerido");
+
+        if (!isset($codigo) || $codigo == "")
+            return BaseResponse::error(__FUNCTION__, "Código es requerido");
+
+        $obj_curso = new TrcCurso();
+        $obj_curso->setProperty('id_programa', $id_programa);
+        $obj_curso->setProperty('nombre', $nombre);
+        $obj_curso->setProperty('codigo', $codigo);
+        $obj_curso->setProperty('descripcion', $descripcion);
+        $obj_curso->setProperty('creditos', ($creditos == "" || $creditos == null) ? 0 : $creditos);
+
+        $result = $obj_curso->insert();
+
+        if ($result['success']) {
+            return BaseResponse::success($result);
+        } else {
+            return BaseResponse::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 
-    public static function obtener()
+    public static function actualizar($id_curso, $id_programa, $nombre, $codigo, $descripcion, $creditos)
     {
-        try {
-            if (!isset($_POST['id_curso'])) {
-                return Result::error("ID del curso requerido", 400);
-            }
+        if (!isset($id_curso) || $id_curso == "")
+            return Result::error(__FUNCTION__, "id_curso es requerido");
 
-            $idCurso = intval($_POST['id_curso']);
-            $curso = new TrcCurso($idCurso);
-            
-            if (empty($curso->getIdCurso())) {
-                return Result::error("Curso no encontrado", 404);
-            }
+        if (!isset($id_programa) || $id_programa == "")
+            return Result::error(__FUNCTION__, "Programa es requerido");
 
-            $datos = [
-                'id_curso' => $curso->getIdCurso(),
-                'id_programa' => $curso->getIdPrograma(),
-                'nombre' => $curso->getNombre(),
-                'codigo' => $curso->getCodigo(),
-                'descripcion' => $curso->getDescripcion(),
-                'creditos' => $curso->getCreditos()
-            ];
+        if (!isset($nombre) || $nombre == "")
+            return Result::error(__FUNCTION__, "Nombre es requerido");
 
-            return Result::message("success", $datos, 200);
-        } catch (Exception $e) {
-            return Result::error($e->getMessage(), 500);
+        if (!isset($codigo) || $codigo == "")
+            return Result::error(__FUNCTION__, "Código es requerido");
+
+        $dao = new TrcCurso($id_curso);
+        $dao->setProperty('id_programa', $id_programa);
+        $dao->setProperty('nombre', $nombre);
+        $dao->setProperty('codigo', $codigo);
+        $dao->setProperty('descripcion', $descripcion);
+        $dao->setProperty('creditos', ($creditos == "" || $creditos == null) ? 0 : $creditos);
+
+        $result = $dao->update();
+
+        if ($result['success']) {
+            return Result::success($result);
+        } else {
+            return Result::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 
-    public static function crear()
+    public static function eliminar($id_curso)
     {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
+        if (!isset($id_curso) || $id_curso == "")
+            return Result::error(__FUNCTION__, "id_curso es requerido");
 
-            if (!isset($_POST['nombre']) || empty($_POST['nombre'])) {
-                return BaseResponse::error("Nombre requerido");
-            }
+        $dao = new TrcCurso($id_curso);
 
-            $curso = new TrcCurso();
-            $curso->setIdPrograma($_POST['id_programa'] ?? null);
-            $curso->setNombre($_POST['nombre']);
-            $curso->setCodigo($_POST['codigo'] ?? null);
-            $curso->setDescripcion($_POST['descripcion'] ?? null);
-            $curso->setCreditos($_POST['creditos'] ?? 0);
-            
-            if ($curso->guardar()) {
-                return BaseResponse::message("Curso creado exitosamente");
-            } else {
-                return BaseResponse::error("Error al crear el curso");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
-        }
-    }
+        $result = $dao->delete();
 
-    public static function actualizar()
-    {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
-
-            if (!isset($_POST['id_curso']) || !isset($_POST['nombre'])) {
-                return BaseResponse::error("Datos incompletos");
-            }
-
-            $curso = new TrcCurso($_POST['id_curso']);
-            if (empty($curso->getIdCurso())) {
-                return BaseResponse::error("Curso no encontrado");
-            }
-
-            $curso->setIdPrograma($_POST['id_programa'] ?? $curso->getIdPrograma());
-            $curso->setNombre($_POST['nombre']);
-            $curso->setCodigo($_POST['codigo'] ?? $curso->getCodigo());
-            $curso->setDescripcion($_POST['descripcion'] ?? $curso->getDescripcion());
-            $curso->setCreditos($_POST['creditos'] ?? $curso->getCreditos());
-            
-            if ($curso->guardar()) {
-                return BaseResponse::message("Curso actualizado exitosamente");
-            } else {
-                return BaseResponse::error("Error al actualizar");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
-        }
-    }
-
-    public static function eliminar()
-    {
-        try {
-            if (!ValidateToken::autentication()) {
-                return BaseResponse::error("No autorizado");
-            }
-
-            if (!isset($_POST['id_curso'])) {
-                return BaseResponse::error("ID requerido");
-            }
-
-            $curso = new TrcCurso($_POST['id_curso']);
-            if (empty($curso->getIdCurso())) {
-                return BaseResponse::error("Curso no encontrado");
-            }
-
-            if ($curso->eliminar()) {
-                return BaseResponse::message("Curso eliminado exitosamente");
-            } else {
-                return BaseResponse::error("Error al eliminar");
-            }
-        } catch (Exception $e) {
-            return BaseResponse::error($e->getMessage());
+        if ($result['success']) {
+            return Result::success($result);
+        } else {
+            return Result::error(__CLASS__ . "." . __FUNCTION__, $result);
         }
     }
 }

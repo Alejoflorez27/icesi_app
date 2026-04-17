@@ -24,140 +24,6 @@ $(document).ready(function () {
         cargarTablaCursos();
     });
 
-    $('#btn-submit-curso').on('click', function (e) {
-        e.preventDefault();
-
-        if (validateFormCurso()) {
-            let method = $('#accionCurso').val();
-            let data = {
-                id_curso: $('#curso-id').val(),
-                id_programa: $('#curso-programa').val(),
-                nombre: $('#curso-nombre').val(),
-                codigo: $('#curso-codigo').val(),
-                descripcion: $('#curso-descripcion').val(),
-                creditos: $('#curso-creditos').val()
-            };
-
-            $.ajax({
-                method: 'POST',
-                headers: {
-                    "access-token": getToken()
-                },
-                url: url_site(`api/cursos?action=${method}`),
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                data: $.param(data),
-                dataType: "json",
-                success: function (r) {
-                    if (r.status == "success") {
-                        alertSwal('success', 'Curso', 'Curso guardado satisfactoriamente');
-                        $('#formCurso')[0].reset();
-                        $('#modalCurso').modal('hide');
-                        cargarDashboard();
-                        cargarTablaCursos();
-                    } else {
-                        alertSwal('error', 'Curso', (r.code && r.code.code) ? r.code.code : 'No fue posible guardar el curso');
-                    }
-                },
-                error: function (xhr) {
-                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
-                },
-                complete: function () {
-                    hideModalLoading();
-                }
-            });
-        }
-    });
-
-    $('#btn-submit-competencia').on('click', function (e) {
-        e.preventDefault();
-
-        if (validateFormCompetencia()) {
-            let method = $('#accionCompetencia').val();
-            let data = {
-                id_competencia: $('#competencia-id').val(),
-                nombre: $('#competencia-nombre').val(),
-                descripcion: $('#competencia-descripcion').val()
-            };
-
-            $.ajax({
-                method: 'POST',
-                headers: {
-                    "access-token": getToken()
-                },
-                url: url_site(`api/competencias?action=${method}`),
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                data: $.param(data),
-                dataType: "json",
-                success: function (r) {
-                    if (r.status == "success") {
-                        alertSwal('success', 'Competencia', 'Competencia guardada satisfactoriamente');
-                        $('#formCompetencia')[0].reset();
-                        $('#modalCompetencia').modal('hide');
-                        cargarDashboard();
-                        cargarFiltrosCurriculo();
-                        cargarTablaCompetencias();
-                        cargarTablaObjetivos();
-                        cargarTablaCursos();
-                    } else {
-                        alertSwal('error', 'Competencia', (r.code && r.code.code) ? r.code.code : 'No fue posible guardar la competencia');
-                    }
-                },
-                error: function (xhr) {
-                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
-                },
-                complete: function () {
-                    hideModalLoading();
-                }
-            });
-        }
-    });
-
-    $('#btn-submit-objetivo').on('click', function (e) {
-        e.preventDefault();
-
-        if (validateFormObjetivo()) {
-            let method = $('#accionObjetivo').val();
-            let data = {
-                id_objetivo: $('#objetivo-id').val(),
-                id_competencia: $('#objetivo-competencia').val(),
-                nombre: $('#objetivo-nombre').val(),
-                descripcion: $('#objetivo-descripcion').val()
-            };
-
-            $.ajax({
-                method: 'POST',
-                headers: {
-                    "access-token": getToken()
-                },
-                url: url_site(`api/objetivos?action=${method}`),
-                contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                data: $.param(data),
-                dataType: "json",
-                success: function (r) {
-                    if (r.status == "success") {
-                        alertSwal('success', 'Objetivo', 'Objetivo guardado satisfactoriamente');
-                        $('#formObjetivo')[0].reset();
-                        $('#modalObjetivo').modal('hide');
-                        cargarDashboard();
-                        cargarFiltrosCurriculo();
-                        cargarTablaCompetencias();
-                        cargarTablaObjetivos();
-                        cargarTablaCursos();
-                        cargarAnalisis();
-                    } else {
-                        alertSwal('error', 'Objetivo', (r.code && r.code.code) ? r.code.code : 'No fue posible guardar el objetivo');
-                    }
-                },
-                error: function (xhr) {
-                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
-                },
-                complete: function () {
-                    hideModalLoading();
-                }
-            });
-        }
-    });
-
     $('.btnAddCurso').on('click', function () {
         $('#formCurso')[0].reset();
         $('#curso-id').val('');
@@ -179,29 +45,182 @@ $(document).ready(function () {
         $('#modalObjetivo').modal();
     });
 
+    $('#btn-submit-curso').on('click', function (e) {
+        e.preventDefault();
+
+        if (validateFormCurso()) {
+            let accion = $('#accionCurso').val();
+            let data = {
+                id_curso: $('#curso-id').val(),
+                id_programa: $('#curso-programa').val(),
+                nombre: $('#curso-nombre').val(),
+                codigo: $('#curso-codigo').val(),
+                descripcion: $('#curso-descripcion').val(),
+                creditos: $('#curso-creditos').val()
+            };
+
+            $.ajax({
+                method: 'POST',
+                headers: {
+                    "access-token": getToken()
+                },
+                url: url_site(`api/cursos/${accion}`),
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                dataType: "json",
+                success: function (r) {
+                    if (r.status == "success") {
+                        alertSwal('success', 'Curso', 'Curso guardado satisfactoriamente');
+                        $('#formCurso')[0].reset();
+                        $('#curso-id').val('');
+                        $('#accionCurso').val('crear');
+                        $('#modalCurso').modal('hide');
+                        cargarDashboard();
+                        cargarTablaCursos();
+                    } else {
+                        alertSwal('error', 'Curso', r.code.code);
+                    }
+                },
+                error: function (xhr) {
+                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                },
+                complete: function () {
+                    hideModalLoading();
+                }
+            });
+        }
+    });
+
+    $('#btn-submit-competencia').on('click', function (e) {
+        e.preventDefault();
+
+        if (validateFormCompetencia()) {
+            let accion = $('#accionCompetencia').val();
+            let data = {
+                id_competencia: $('#competencia-id').val(),
+                nombre: $('#competencia-nombre').val(),
+                descripcion: $('#competencia-descripcion').val()
+            };
+
+            $.ajax({
+                method: 'POST',
+                headers: {
+                    "access-token": getToken()
+                },
+                url: url_site(`api/competencias/${accion}`),
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                dataType: "json",
+                success: function (r) {
+                    if (r.status == "success") {
+                        alertSwal('success', 'Competencia', 'Competencia guardada satisfactoriamente');
+                        $('#formCompetencia')[0].reset();
+                        $('#competencia-id').val('');
+                        $('#accionCompetencia').val('crear');
+                        $('#modalCompetencia').modal('hide');
+                        cargarDashboard();
+                        cargarFiltrosCurriculo();
+                        cargarTablaCompetencias();
+                        cargarTablaObjetivos();
+                        cargarTablaCursos();
+                        cargarAnalisis();
+                    } else {
+                        alertSwal('error', 'Competencia', r.code.code);
+                    }
+                },
+                error: function (xhr) {
+                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                },
+                complete: function () {
+                    hideModalLoading();
+                }
+            });
+        }
+    });
+
+    $('#btn-submit-objetivo').on('click', function (e) {
+        e.preventDefault();
+
+        if (validateFormObjetivo()) {
+            let accion = $('#accionObjetivo').val();
+            let data = {
+                id_objetivo: $('#objetivo-id').val(),
+                id_competencia: $('#objetivo-competencia').val(),
+                nombre: $('#objetivo-nombre').val(),
+                descripcion: $('#objetivo-descripcion').val()
+            };
+
+            $.ajax({
+                method: 'POST',
+                headers: {
+                    "access-token": getToken()
+                },
+                url: url_site(`api/objetivos/${accion}`),
+                contentType: 'application/json',
+                data: JSON.stringify(data),
+                dataType: "json",
+                success: function (r) {
+                    if (r.status == "success") {
+                        alertSwal('success', 'Objetivo', 'Objetivo guardado satisfactoriamente');
+                        $('#formObjetivo')[0].reset();
+                        $('#objetivo-id').val('');
+                        $('#accionObjetivo').val('crear');
+                        $('#modalObjetivo').modal('hide');
+                        cargarDashboard();
+                        cargarFiltrosCurriculo();
+                        cargarTablaCompetencias();
+                        cargarTablaObjetivos();
+                        cargarTablaCursos();
+                        cargarAnalisis();
+                    } else {
+                        alertSwal('error', 'Objetivo', r.code.code);
+                    }
+                },
+                error: function (xhr) {
+                    alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+                },
+                complete: function () {
+                    hideModalLoading();
+                }
+            });
+        }
+    });
+
     $('#tbl-cursos').on('click', '.btnEditCurso', function () {
         let id_curso = $(this).attr('curso');
 
         $('#accionCurso').val('actualizar');
 
+        showModalLoading();
         $.ajax({
             headers: {
                 "access-token": getToken()
             },
             type: "POST",
-            url: url_site(`api/cursos?action=obtener`),
-            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-            data: $.param({ id_curso: id_curso }),
+            url: url_site(`api/cursos/obtener`),
+            contentType: 'application/json',
+            data: JSON.stringify({
+                id_curso: id_curso
+            }),
             dataType: "json",
             success: function (resp) {
-                $('#curso-id').val(resp.data.id_curso);
-                $('#curso-programa').val(resp.data.id_programa);
-                $('#curso-nombre').val(resp.data.nombre);
-                $('#curso-codigo').val(resp.data.codigo);
-                $('#curso-descripcion').val(resp.data.descripcion);
-                $('#curso-creditos').val(resp.data.creditos);
-                $('#modalCurso').modal();
+                if (resp.status == "success") {
+                    $('#curso-id').val(resp.data.id_curso);
+                    $('#curso-programa').val(resp.data.id_programa).change();
+                    $('#curso-nombre').val(resp.data.nombre);
+                    $('#curso-codigo').val(resp.data.codigo);
+                    $('#curso-descripcion').val(resp.data.descripcion);
+                    $('#curso-creditos').val(resp.data.creditos);
+                    $('#modalCurso').modal();
+                } else {
+                    alertSwal('error', 'Curso', resp.code.code);
+                }
+            },
+            error: function (xhr) {
+                alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
             }
+        }).done(function () {
+            hideModalLoading();
         });
     });
 
@@ -210,21 +229,33 @@ $(document).ready(function () {
 
         $('#accionCompetencia').val('actualizar');
 
+        showModalLoading();
         $.ajax({
             headers: {
                 "access-token": getToken()
             },
             type: "POST",
-            url: url_site(`api/competencias?action=obtener`),
-            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-            data: $.param({ id_competencia: id_competencia }),
+            url: url_site(`api/competencias/obtener`),
+            contentType: 'application/json',
+            data: JSON.stringify({
+                id_competencia: id_competencia
+            }),
             dataType: "json",
             success: function (resp) {
-                $('#competencia-id').val(resp.data.id_competencia);
-                $('#competencia-nombre').val(resp.data.nombre);
-                $('#competencia-descripcion').val(resp.data.descripcion);
-                $('#modalCompetencia').modal();
+                if (resp.status == "success") {
+                    $('#competencia-id').val(resp.data.id_competencia);
+                    $('#competencia-nombre').val(resp.data.nombre);
+                    $('#competencia-descripcion').val(resp.data.descripcion);
+                    $('#modalCompetencia').modal();
+                } else {
+                    alertSwal('error', 'Competencia', resp.code.code);
+                }
+            },
+            error: function (xhr) {
+                alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
             }
+        }).done(function () {
+            hideModalLoading();
         });
     });
 
@@ -233,22 +264,34 @@ $(document).ready(function () {
 
         $('#accionObjetivo').val('actualizar');
 
+        showModalLoading();
         $.ajax({
             headers: {
                 "access-token": getToken()
             },
             type: "POST",
-            url: url_site(`api/objetivos?action=obtener`),
-            contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-            data: $.param({ id_objetivo: id_objetivo }),
+            url: url_site(`api/objetivos/obtener`),
+            contentType: 'application/json',
+            data: JSON.stringify({
+                id_objetivo: id_objetivo
+            }),
             dataType: "json",
             success: function (resp) {
-                $('#objetivo-id').val(resp.data.id_objetivo);
-                $('#objetivo-competencia').val(resp.data.id_competencia);
-                $('#objetivo-nombre').val(resp.data.nombre);
-                $('#objetivo-descripcion').val(resp.data.descripcion);
-                $('#modalObjetivo').modal();
+                if (resp.status == "success") {
+                    $('#objetivo-id').val(resp.data.id_objetivo);
+                    $('#objetivo-competencia').val(resp.data.id_competencia).change();
+                    $('#objetivo-nombre').val(resp.data.nombre);
+                    $('#objetivo-descripcion').val(resp.data.descripcion);
+                    $('#modalObjetivo').modal();
+                } else {
+                    alertSwal('error', 'Objetivo', resp.code.code);
+                }
+            },
+            error: function (xhr) {
+                alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
             }
+        }).done(function () {
+            hideModalLoading();
         });
     });
 
@@ -270,9 +313,11 @@ $(document).ready(function () {
                     headers: {
                         "access-token": getToken()
                     },
-                    url: url_site(`api/cursos?action=eliminar`),
-                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                    data: $.param({ id_curso: id_curso }),
+                    url: url_site(`api/cursos/eliminar`),
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id_curso: id_curso
+                    }),
                     dataType: "json",
                     success: function (r) {
                         if (r.status == "success") {
@@ -280,7 +325,7 @@ $(document).ready(function () {
                             cargarDashboard();
                             cargarTablaCursos();
                         } else {
-                            alertSwal('error', 'Curso', (r.code && r.code.code) ? r.code.code : 'No fue posible eliminar el curso');
+                            alertSwal('error', 'Curso', r.code.code);
                         }
                     },
                     error: function (xhr) {
@@ -309,9 +354,11 @@ $(document).ready(function () {
                     headers: {
                         "access-token": getToken()
                     },
-                    url: url_site(`api/competencias?action=eliminar`),
-                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                    data: $.param({ id_competencia: id_competencia }),
+                    url: url_site(`api/competencias/eliminar`),
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id_competencia: id_competencia
+                    }),
                     dataType: "json",
                     success: function (r) {
                         if (r.status == "success") {
@@ -323,7 +370,7 @@ $(document).ready(function () {
                             cargarTablaCursos();
                             cargarAnalisis();
                         } else {
-                            alertSwal('error', 'Competencia', (r.code && r.code.code) ? r.code.code : 'No fue posible eliminar la competencia');
+                            alertSwal('error', 'Competencia', r.code.code);
                         }
                     },
                     error: function (xhr) {
@@ -352,9 +399,11 @@ $(document).ready(function () {
                     headers: {
                         "access-token": getToken()
                     },
-                    url: url_site(`api/objetivos?action=eliminar`),
-                    contentType: 'application/x-www-form-urlencoded; charset=UTF-8',
-                    data: $.param({ id_objetivo: id_objetivo }),
+                    url: url_site(`api/objetivos/eliminar`),
+                    contentType: 'application/json',
+                    data: JSON.stringify({
+                        id_objetivo: id_objetivo
+                    }),
                     dataType: "json",
                     success: function (r) {
                         if (r.status == "success") {
@@ -366,7 +415,7 @@ $(document).ready(function () {
                             cargarTablaCursos();
                             cargarAnalisis();
                         } else {
-                            alertSwal('error', 'Objetivo', (r.code && r.code.code) ? r.code.code : 'No fue posible eliminar el objetivo');
+                            alertSwal('error', 'Objetivo', r.code.code);
                         }
                     },
                     error: function (xhr) {
@@ -463,7 +512,6 @@ function cargarTablaCursos() {
     let nivel = $('#filtro-nivel').val();
 
     showModalLoading();
-
     $.ajax({
         headers: {
             "access-token": getToken()
@@ -495,7 +543,7 @@ function cargarTablaCursos() {
                         curso.codigo,
                         curso.nombre,
                         curso.programa,
-                        curso.creditos,
+                        curso.creditos || 0,
                         (curso.competencias || '').split('||').join('<br>'),
                         (curso.objetivos_nivel || '').split('||').join('<br>'),
                         `<button class="btn btn-xs btn-warning btnEditCurso" curso="${curso.id_curso}">
@@ -523,7 +571,6 @@ function cargarTablaCursos() {
 
 function cargarTablaCompetencias() {
     showModalLoading();
-
     $.ajax({
         headers: {
             "access-token": getToken()
@@ -541,7 +588,7 @@ function cargarTablaCompetencias() {
                 ordering: true,
                 info: false,
                 searching: true,
-                order: [[0, "asc"]]
+                order: [[1, "asc"]]
             });
 
             if (r.status == "success") {
@@ -576,7 +623,6 @@ function cargarTablaCompetencias() {
 
 function cargarTablaObjetivos() {
     showModalLoading();
-
     $.ajax({
         headers: {
             "access-token": getToken()
@@ -594,7 +640,7 @@ function cargarTablaObjetivos() {
                 ordering: true,
                 info: false,
                 searching: true,
-                order: [[0, "asc"]]
+                order: [[1, "asc"]]
             });
 
             if (r.status == "success") {
