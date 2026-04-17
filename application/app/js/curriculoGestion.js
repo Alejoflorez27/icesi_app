@@ -425,6 +425,94 @@ $(document).ready(function () {
             }
         });
     });
+
+$('#tbl-cursos').on('click', '.btnObjetivosCurso', function () {
+    let id_curso = $(this).attr('curso');
+
+    $('#curso-objetivo-id-curso').val(id_curso);
+
+    loadSelectOption({
+        url: url_site(`api/curriculoAnalisis/listar-objetivos`),
+        input: [{
+            id: 'curso-objetivo-id-objetivo',
+            clearOptions: true,
+            emptyText: 'Seleccione un Objetivo',
+            selectedValue: ''
+        }],
+        columnKey: 'id_objetivo',
+        columnDescription: 'nombre',
+        responsePath: 'data'
+    });
+
+    cargarTablaCursoObjetivo(id_curso);
+    $('#modalCursoObjetivo').modal();
+});
+
+$('#btn-agregar-objetivo-curso').on('click', function () {
+    let data = {
+        id_curso: $('#curso-objetivo-id-curso').val(),
+        id_objetivo: $('#curso-objetivo-id-objetivo').val(),
+        nivel: $('#curso-objetivo-nivel').val()
+    };
+
+    if (data.id_objetivo == "" || data.nivel == "") {
+        alertSwal('error', 'Curso Objetivo', 'Debe seleccionar objetivo y nivel');
+        return;
+    }
+
+    $.ajax({
+        method: 'POST',
+        headers: {
+            "access-token": getToken()
+        },
+        url: url_site(`api/cursoObjetivo/crear`),
+        contentType: 'application/json',
+        data: JSON.stringify(data),
+        dataType: "json",
+        success: function (r) {
+            if (r.status == "success") {
+                alertSwal('success', 'Curso Objetivo', 'Relación guardada satisfactoriamente');
+                cargarTablaCursoObjetivo(data.id_curso);
+            } else {
+                alertSwal('error', 'Curso Objetivo', r.code.code);
+            }
+        },
+        error: function (xhr) {
+            alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+        }
+    });
+});
+
+$('#tbl-curso-objetivo').on('click', '.btnDeleteCursoObjetivo', function () {
+    let id_curso_objetivo = $(this).attr('cursoobjetivo');
+    let id_curso = $('#curso-objetivo-id-curso').val();
+
+    $.ajax({
+        method: 'POST',
+        headers: {
+            "access-token": getToken()
+        },
+        url: url_site(`api/cursoObjetivo/eliminar`),
+        contentType: 'application/json',
+        data: JSON.stringify({
+            id_curso_objetivo: id_curso_objetivo
+        }),
+        dataType: "json",
+        success: function (r) {
+            if (r.status == "success") {
+                alertSwal('success', 'Curso Objetivo', 'Relación eliminada satisfactoriamente');
+                cargarTablaCursoObjetivo(id_curso);
+            } else {
+                alertSwal('error', 'Curso Objetivo', r.code.code);
+            }
+        },
+        error: function (xhr) {
+            alertSwal('error', 'Error al cargar los datos.', xhr.responseText);
+        }
+    });
+});
+
+
 });
 
 function cargarDashboard() {
@@ -546,7 +634,10 @@ function cargarTablaCursos() {
                         curso.creditos || 0,
                         (curso.competencias || '').split('||').join('<br>'),
                         (curso.objetivos_nivel || '').split('||').join('<br>'),
-                        `<button class="btn btn-xs btn-warning btnEditCurso" curso="${curso.id_curso}">
+                        `<button class="btn btn-xs btn-info btnObjetivosCurso" curso="${curso.id_curso}" nombre="${curso.nombre}">
+                            <i class="fa fa-list" aria-hidden="true"></i> Objetivos
+                        </button>
+                        <button class="btn btn-xs btn-warning btnEditCurso" curso="${curso.id_curso}">
                             <i class="fa fa-pencil" aria-hidden="true"></i> Editar
                         </button>
                         <button class="btn btn-xs btn-danger btnDeleteCurso" curso="${curso.id_curso}">
@@ -697,6 +788,14 @@ function renderizarGraficos(data) {
     const ctxObjetivos = document.getElementById('grafico-objetivos');
     const ctxCompetencias = document.getElementById('grafico-competencias');
 
+    $('#total-objetivos-analisis').html(data.totalObjetivos);
+    $('#objetivos-sin-asignar-analisis').html(data.objetivosSinAsignar);
+    $('#porcentaje-objetivos-sin').html(data.porcentajeObjetivosSin + '%');
+
+    $('#total-competencias-analisis').html(data.totalCompetencias);
+    $('#competencias-sin-objetivos-analisis').html(data.competenciasSinObjetivos);
+    $('#porcentaje-competencias-sin').html(data.porcentajeCompetenciasSin + '%');
+
     if (chartObjetivos) {
         chartObjetivos.destroy();
     }
@@ -717,6 +816,15 @@ function renderizarGraficos(data) {
                     ],
                     backgroundColor: ['#f39c12', '#00a65a']
                 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
             }
         });
     }
@@ -733,10 +841,20 @@ function renderizarGraficos(data) {
                     ],
                     backgroundColor: ['#dd4b39', '#3c8dbc']
                 }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: {
+                        position: 'bottom'
+                    }
+                }
             }
         });
     }
 }
+
 
 function validateFormCurso() {
     if ($('#curso-programa').val() == "" || $('#curso-programa').val() == null) {
@@ -784,4 +902,43 @@ function validateFormObjetivo() {
     }
 
     return true;
+}
+
+function cargarTablaCursoObjetivo(id_curso) {
+    $.ajax({
+        headers: {
+            "access-token": getToken()
+        },
+        type: "GET",
+        url: url_site(`api/cursoObjetivo/por-curso?id_curso=${id_curso}`),
+        dataType: "json",
+        success: function (r) {
+            $('#tbl-curso-objetivo').DataTable().clear();
+            $('#tbl-curso-objetivo').DataTable().destroy();
+
+            let t = $('#tbl-curso-objetivo').DataTable({
+                paging: true,
+                ordering: true,
+                info: false,
+                searching: true,
+                order: [[1, "asc"]]
+            });
+
+            if (r.status == "success") {
+                r.data.forEach((item) => {
+                    t.row.add([
+                        item.id_curso_objetivo,
+                        item.objetivo,
+                        item.competencia,
+                        item.nivel,
+                        `<button class="btn btn-xs btn-danger btnDeleteCursoObjetivo" cursoobjetivo="${item.id_curso_objetivo}">
+                            <i class="fa fa-trash" aria-hidden="true"></i> Eliminar
+                        </button>`
+                    ]);
+                });
+            }
+
+            t.draw();
+        }
+    });
 }

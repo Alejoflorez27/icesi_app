@@ -1,129 +1,98 @@
 <?php
 
-/**
- * API: Relación Curso-Objetivo
- * Endpoints para gestión de la asignación de objetivos a cursos
- */
+$recurso = $router->get(3);
 
-$action = $_REQUEST['action'] ?? '';
-$ctr = new CtrCrudCursoObjetivo();
+$permitidos_sin_login = array();
+$permitido = in_array($router->get(3), $permitidos_sin_login);
 
-switch ($action) {
-    case 'listar':
-        CtrAPI::response(
-            200,
-            'success',
-            'Relaciones obtenidas correctamente',
-            $ctr->listar()
-        );
-        break;
-    
-    case 'obtenerObjetivosCurso':
-        $idCurso = $_REQUEST['id_curso'] ?? null;
-        if (!$idCurso) {
-            CtrAPI::response(400, 'error', 'ID de curso requerido');
-        }
-        
-        $mdl = new MdlCursoObjetivo();
-        CtrAPI::response(
-            200,
-            'success',
-            'Objetivos del curso obtenidos correctamente',
-            $mdl->obtenerObjetivosCurso($idCurso)
-        );
-        break;
-    
-    case 'obtenerCursosObjetivo':
-        $idObjetivo = $_REQUEST['id_objetivo'] ?? null;
-        if (!$idObjetivo) {
-            CtrAPI::response(400, 'error', 'ID de objetivo requerido');
-        }
-        
-        $mdl = new MdlCursoObjetivo();
-        CtrAPI::response(
-            200,
-            'success',
-            'Cursos del objetivo obtenidos correctamente',
-            $mdl->obtenerCursosObjetivo($idObjetivo)
-        );
-        break;
-    
-    case 'crear':
-        $datos = [
-            'id_curso' => $_REQUEST['id_curso'] ?? null,
-            'id_objetivo' => $_REQUEST['id_objetivo'] ?? null,
-            'nivel' => $_REQUEST['nivel'] ?? null
-        ];
-        
-        if (!$datos['id_curso'] || !$datos['id_objetivo'] || !$datos['nivel']) {
-            CtrAPI::response(400, 'error', 'Datos incompletos');
-        }
-        
-        // Validar que el nivel sea válido
-        if (!in_array($datos['nivel'], ['I', 'F', 'V'])) {
-            CtrAPI::response(400, 'error', 'Nivel debe ser I, F o V');
-        }
-        
-        if ($ctr->crear($datos)) {
-            CtrAPI::response(201, 'success', 'Relación creada correctamente');
-        } else {
-            CtrAPI::response(500, 'error', 'Error al crear la relación');
-        }
-        break;
-    
-    case 'actualizar':
-        $id = $_REQUEST['id'] ?? null;
-        if (!$id) {
-            CtrAPI::response(400, 'error', 'ID requerido');
-        }
-        
-        $datos = [
-            'id_curso' => $_REQUEST['id_curso'] ?? null,
-            'id_objetivo' => $_REQUEST['id_objetivo'] ?? null,
-            'nivel' => $_REQUEST['nivel'] ?? null
-        ];
-        
-        // Validar que el nivel sea válido
-        if (!in_array($datos['nivel'], ['I', 'F', 'V'])) {
-            CtrAPI::response(400, 'error', 'Nivel debe ser I, F o V');
-        }
-        
-        if ($ctr->actualizar($id, $datos)) {
-            CtrAPI::response(200, 'success', 'Relación actualizada correctamente');
-        } else {
-            CtrAPI::response(500, 'error', 'Error al actualizar la relación');
-        }
-        break;
-    
-    case 'eliminar':
-        $id = $_REQUEST['id'] ?? null;
-        if (!$id) {
-            CtrAPI::response(400, 'error', 'ID requerido');
-        }
-        
-        if ($ctr->eliminar($id)) {
-            CtrAPI::response(200, 'success', 'Relación eliminada correctamente');
-        } else {
-            CtrAPI::response(500, 'error', 'Error al eliminar la relación');
-        }
-        break;
-    
-    case 'eliminarPorCursoObjetivo':
-        $idCurso = $_REQUEST['id_curso'] ?? null;
-        $idObjetivo = $_REQUEST['id_objetivo'] ?? null;
-        
-        if (!$idCurso || !$idObjetivo) {
-            CtrAPI::response(400, 'error', 'ID de curso e objetivo requeridos');
-        }
-        
-        $mdl = new MdlCursoObjetivo();
-        if ($mdl->eliminarPorCursoObjetivo($idCurso, $idObjetivo)) {
-            CtrAPI::response(200, 'success', 'Relación eliminada correctamente');
-        } else {
-            CtrAPI::response(500, 'error', 'Error al eliminar la relación');
-        }
-        break;
-    
-    default:
-        CtrAPI::response(400, 'error', 'Acción no válida');
+if (!$permitido) {
+    if (!ValidateToken::autentication()) {
+        http_response_code(403);
+        header("Content-Type: application/json; charset=UTF-8");
+        echo json_encode(Result::error(__FUNCTION__, "Acceso denegado"));
+        return;
+    }
+}
+
+$put_vars = json_decode(file_get_contents("php://input"), true);
+if (isset($put_vars))
+    extract($put_vars, EXTR_PREFIX_ALL, "v");
+
+if ($_SERVER['REQUEST_METHOD'] == 'GET') {
+
+    switch (strtolower($recurso)) {
+
+        case 'lista':
+            header("Content-Type: application/json; charset=UTF-8");
+            http_response_code(200);
+            echo json_encode(CtrCursoObjetivo::listar());
+            return;
+            break;
+
+        case 'por-curso':
+            header("Content-Type: application/json; charset=UTF-8");
+            http_response_code(200);
+            echo json_encode(CtrCursoObjetivo::listarPorCurso($router->param('id_curso')));
+            return;
+            break;
+
+        default:
+            http_response_code(400);
+            echo json_encode(Result::error(__FUNCTION__, "Recurso no encontrado"));
+            return;
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] == 'POST') {
+
+    switch (strtolower($recurso)) {
+
+        case 'crear':
+            header("Content-Type: application/json; charset=UTF-8");
+            http_response_code(200);
+            echo json_encode(
+                CtrCursoObjetivo::crear(
+                    $v_id_curso,
+                    $v_id_objetivo,
+                    $v_nivel
+                )
+            );
+            return;
+            break;
+
+        case 'eliminar':
+            header("Content-Type: application/json; charset=UTF-8");
+            http_response_code(200);
+            echo json_encode(
+                CtrCursoObjetivo::eliminar($v_id_curso_objetivo)
+            );
+            return;
+            break;
+
+        default:
+            http_response_code(400);
+            echo json_encode(Result::error(__FUNCTION__, "Recurso no encontrado"));
+            return;
+    }
+} elseif ($_SERVER['REQUEST_METHOD'] == 'PUT') {
+
+    switch (strtolower($recurso)) {
+
+        case 'actualizar':
+            header("Content-Type: application/json; charset=UTF-8");
+            http_response_code(200);
+            echo json_encode(
+                CtrCursoObjetivo::actualizar(
+                    $v_id_curso_objetivo,
+                    $v_id_objetivo,
+                    $v_nivel
+                )
+            );
+            return;
+            break;
+
+        default:
+            http_response_code(400);
+            echo json_encode(Result::error(__FUNCTION__, "Recurso no encontrado"));
+            return;
+            break;
+    }
 }

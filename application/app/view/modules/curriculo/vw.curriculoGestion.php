@@ -188,25 +188,87 @@
                 </div>
             </div>
 
-            <div class="tab-pane" id="tab_analisis">
-                <div class="box">
-                    <div class="box-header with-border">
-                        <h3 class="box-title">Análisis de Cobertura Curricular</h3>
-                    </div>
-                    <div class="box-body">
-                        <div class="row">
-                            <div class="col-md-6">
-                                <h4>Objetivos sin asignar</h4>
-                                <canvas id="grafico-objetivos"></canvas>
+<div class="tab-pane" id="tab_analisis">
+    <div class="box">
+        <div class="box-header with-border">
+            <h3 class="box-title">Análisis de Cobertura Curricular</h3>
+        </div>
+        <div class="box-body">
+            <div class="row">
+                <div class="col-md-6 text-center">
+                    <h4>Objetivos sin asignar</h4>
+
+                    <div class="row" style="margin-bottom: 15px;">
+                        <div class="col-xs-4">
+                            <div class="small-box bg-aqua" style="margin-bottom: 0;">
+                                <div class="inner">
+                                    <h4 id="total-objetivos-analisis">0</h4>
+                                    <p>Total</p>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <h4>Competencias sin objetivos</h4>
-                                <canvas id="grafico-competencias"></canvas>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="small-box bg-yellow" style="margin-bottom: 0;">
+                                <div class="inner">
+                                    <h4 id="objetivos-sin-asignar-analisis">0</h4>
+                                    <p>Sin asignar</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="small-box bg-orange" style="margin-bottom: 0;">
+                                <div class="inner">
+                                    <h4 id="porcentaje-objetivos-sin">0%</h4>
+                                    <p>Porcentaje</p>
+                                </div>
                             </div>
                         </div>
                     </div>
+
+                    <div style="max-width: 280px; margin: 0 auto;">
+                        <canvas id="grafico-objetivos" height="200"></canvas>
+                    </div>
+                </div>
+
+                <div class="col-md-6 text-center">
+                    <h4>Competencias sin objetivos</h4>
+
+                    <div class="row" style="margin-bottom: 15px;">
+                        <div class="col-xs-4">
+                            <div class="small-box bg-blue" style="margin-bottom: 0;">
+                                <div class="inner">
+                                    <h4 id="total-competencias-analisis">0</h4>
+                                    <p>Total</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="small-box bg-red" style="margin-bottom: 0;">
+                                <div class="inner">
+                                    <h4 id="competencias-sin-objetivos-analisis">0</h4>
+                                    <p>Sin objetivos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-xs-4">
+                            <div class="small-box bg-maroon" style="margin-bottom: 0;">
+                                <div class="inner">
+                                    <h4 id="porcentaje-competencias-sin">0%</h4>
+                                    <p>Porcentaje</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="max-width: 280px; margin: 0 auto;">
+                        <canvas id="grafico-competencias" height="200"></canvas>
+                    </div>
                 </div>
             </div>
+        </div>
+    </div>
+</div>
+
         </div>
     </div>
 </section>
@@ -320,6 +382,58 @@
         </div>
     </div>
 </div>
+
+<div class="modal fade" id="modalCursoObjetivo">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal"><span>×</span></button>
+                <h4 class="modal-title">Objetivos del Curso</h4>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="curso-objetivo-id-curso">
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <label>Objetivo:</label>
+                        <select id="curso-objetivo-id-objetivo" class="form-control"></select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>Nivel:</label>
+                        <select id="curso-objetivo-nivel" class="form-control">
+                            <option value="">Seleccione</option>
+                            <option value="I">I</option>
+                            <option value="F">F</option>
+                            <option value="V">V</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label>&nbsp;</label>
+                        <button type="button" class="btn btn-primary form-control" id="btn-agregar-objetivo-curso">
+                            Agregar
+                        </button>
+                    </div>
+                </div>
+
+                <br>
+
+                <table id="tbl-curso-objetivo" class="table table-bordered table-striped" width="100%">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Objetivo</th>
+                            <th>Competencia</th>
+                            <th>Nivel</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
 <script src="<?= constant('APP_URL') ?>app/js/curriculoGestion.js"></script>
